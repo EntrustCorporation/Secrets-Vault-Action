@@ -4,9 +4,22 @@ inputs:
   base_url:
     description: 'The base URL of the vault API'
     required: true
+  auth_type:
+    description: 'Authentication type (token, userpass)'
+    required: false
+    default: 'token'
   api_token:
-    description: 'The API token for authentication'
-    required: true
+    description: 'The API token for token-based authentication'
+    required: false
+  username:
+    description: 'Username for userpass authentication'
+    required: false
+  password:
+    description: 'Password for userpass authentication'
+    required: false
+  vault_uid:
+    description: 'Vault UID for login'
+    required: false
   box_id:
     description: 'The box ID to fetch the secret from'
     required: true

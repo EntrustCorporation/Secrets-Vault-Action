@@ -4,6 +4,7 @@ const https = require('https');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const { createAuthenticator } = require('./auth');
 
 const checkoutSecretAPI = "/vault/1.0/CheckoutSecret/"
 
@@ -13,7 +14,6 @@ async function run() {
   try {
     // Get inputs
     const baseUrl = core.getInput('base_url', { required: true });
-    const apiToken = core.getInput('api_token', { required: true });
     const boxId = core.getInput('box_id', { required: true });
     const secretId = core.getInput('secret_id', { required: true });
     const caCert = core.getInput('ca_cert');
@@ -41,6 +41,13 @@ async function run() {
       core.info('No CA certificate provided, using default certificate validation');
     }
 
+    // Initialize the authenticator
+    const authenticator = createAuthenticator({
+      baseUrl,
+      httpsAgent,
+      timeout: 10000
+    });
+
     // Fetch secret from vault
     try {
       core.info(`Making API request to: ${baseUrl}${checkoutSecretAPI}`);
@@ -50,11 +57,11 @@ async function run() {
         "secret_id": secretId
       };
       
+      // Get authentication headers
+      const authHeaders = await authenticator.getAuthHeaders();
+      
       const config = {
-        headers: {
-          'X-Vault-Auth': apiToken,
-          'Content-Type': 'application/json'
-        },
+        headers: authHeaders,
         httpsAgent: httpsAgent,
         timeout: 10000 // 10 second timeout
       };
