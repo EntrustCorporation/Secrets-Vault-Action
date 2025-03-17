@@ -30263,6 +30263,7 @@ const https = __nccwpck_require__(5687);
 const fs = __nccwpck_require__(7147);
 const path = __nccwpck_require__(1017);
 const os = __nccwpck_require__(2037);
+const { createAuthenticator } = __nccwpck_require__(4915);
 
 const checkoutSecretAPI = "/vault/1.0/CheckoutSecret/"
 
@@ -30272,7 +30273,6 @@ async function run() {
   try {
     // Get inputs
     const baseUrl = core.getInput('base_url', { required: true });
-    const apiToken = core.getInput('api_token', { required: true });
     const boxId = core.getInput('box_id', { required: true });
     const secretId = core.getInput('secret_id', { required: true });
     const caCert = core.getInput('ca_cert');
@@ -30300,6 +30300,13 @@ async function run() {
       core.info('No CA certificate provided, using default certificate validation');
     }
 
+    // Initialize the authenticator
+    const authenticator = createAuthenticator({
+      baseUrl,
+      httpsAgent,
+      timeout: 10000
+    });
+
     // Fetch secret from vault
     try {
       core.info(`Making API request to: ${baseUrl}${checkoutSecretAPI}`);
@@ -30309,11 +30316,11 @@ async function run() {
         "secret_id": secretId
       };
       
+      // Get authentication headers
+      const authHeaders = await authenticator.getAuthHeaders();
+      
       const config = {
-        headers: {
-          'X-Vault-Auth': apiToken,
-          'Content-Type': 'application/json'
-        },
+        headers: authHeaders,
         httpsAgent: httpsAgent,
         timeout: 10000 // 10 second timeout
       };
@@ -30371,6 +30378,142 @@ async function run() {
 }
 
 module.exports = { run };
+
+
+/***/ }),
+
+/***/ 4915:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+const core = __nccwpck_require__(2186);
+const axios = __nccwpck_require__(8757);
+
+/**
+ * Factory function to create the appropriate authenticator
+ * @param {Object} config Configuration object with auth details
+ * @return {Object} Authenticator instance
+ */
+function createAuthenticator(config) {
+  const authType = core.getInput('auth_type') || 'token';
+  
+  switch (authType.toLowerCase()) {
+    case 'token':
+      return new TokenAuthenticator(config);
+    case 'userpass':
+      return new UserPassAuthenticator(config);
+    default:
+      throw new Error(`Unsupported authentication type: ${authType}`);
+  }
+}
+
+/**
+ * Base class for all authenticators
+ */
+class BaseAuthenticator {
+  constructor(config) {
+    this.baseUrl = config.baseUrl;
+    this.httpsAgent = config.httpsAgent;
+    this.timeout = config.timeout || 10000;
+  }
+
+  async getAuthHeaders() {
+    throw new Error('Method not implemented');
+  }
+}
+
+/**
+ * Token-based authenticator
+ */
+class TokenAuthenticator extends BaseAuthenticator {
+  constructor(config) {
+    super(config);
+    this.token = core.getInput('api_token', { required: true });
+  }
+
+  async getAuthHeaders() {
+    return {
+      'X-Vault-Auth': this.token,
+      'Content-Type': 'application/json'
+    };
+  }
+}
+
+/**
+ * Username/Password authenticator
+ */
+class UserPassAuthenticator extends BaseAuthenticator {
+  constructor(config) {
+    super(config);
+    this.username = core.getInput('username', { required: true });
+    this.password = core.getInput('password', { required: true });
+    this.vaultUId = core.getInput('vault_uid', { required: true });
+    this.token = null;
+    this.tokenExpiry = null;
+  }
+
+  async getAuthHeaders() {
+    if (!this.token || this.isTokenExpired()) {
+      await this.authenticate();
+    }
+    
+    return {
+      'X-Vault-Auth': this.token,
+      'Content-Type': 'application/json'
+    };
+  }
+
+  isTokenExpired() {
+    if (!this.tokenExpiry) return true;
+    // Add a 5-minute buffer to ensure we refresh before actual expiration
+    return new Date(this.tokenExpiry).getTime() - 5 * 60 * 1000 < Date.now();
+  }
+
+  async authenticate() {
+    try {
+      core.info('Authenticating with username and password');
+      
+      
+      const loginEndpoint = `/vault/1.0/Login/${this.vaultUId}/`;
+      
+      const response = await axios.post(
+        this.baseUrl + loginEndpoint,
+        {
+          username: this.username,
+          password: this.password
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          httpsAgent: this.httpsAgent,
+          timeout: this.timeout
+        }
+      );
+      
+      if (!response.data || !response.data.access_token) {
+        throw new Error('Failed to authenticate: No access token in response');
+      }
+      
+      this.token = response.data.access_token;
+      this.tokenExpiry = response.data.expires_at;
+      
+      core.info(`Authentication successful. Token will expire at ${this.tokenExpiry}`);
+      core.setSecret(this.token); // Mark the token as a secret to prevent logging
+      
+    } catch (error) {
+      core.error('Authentication failed');
+      if (error.response) {
+        core.error(`Status: ${error.response.status}`);
+        core.error(`Response data: ${JSON.stringify(error.response.data || {})}`);
+      }
+      throw new Error(`Authentication failed: ${error.message}`);
+    }
+  }
+}
+
+module.exports = {
+  createAuthenticator
+};
 
 
 /***/ }),
