@@ -1,0 +1,45 @@
+name: Deploy Application (Safer Approach)
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # Step 1: Fetch secrets from vault (environment variables only)
+      - name: Fetch secrets from vault
+        id: fetch-secrets
+        uses: entrust/secret-vault-action@v1
+        with:
+          base_url: ${{ secrets.VAULT_URL }}
+          auth_type: 'userpass'
+          username: ${{ secrets.VAULT_USERNAME }}
+          password: ${{ secrets.VAULT_PASSWORD }}
+          vault_uid: ${{ secrets.VAULT_UID }}
+          secrets: |
+            secret.env.AWS.accessKey | AWS_ACCESS_KEY_ID
+            secret.env.AWS.secretKey | AWS_SECRET_ACCESS_KEY
+            secret.env.SSH.privateKey | SSH_KEY
+            secret.env.Certificates.sslCert | SSL_CERT
+
+      # Step 2: Create files manually when needed
+      - name: Create temporary files
+        run: |
+          # Create directories with restricted permissions
+          mkdir -p -m 700 ./ssh ./ssl
+          
+          # Write SSH key with proper permissions
+          echo "$SSH_KEY" > ./ssh/id_rsa
+          chmod 600 ./ssh/id_rsa
+          
+          # Write SSL certificate
+          echo "$SSL_CERT" > ./ssl/certificate.pem
+          chmod 644 ./ssl/certificate.pem
+
+      # Steps 3-6: Use secrets and files as needed
+      
+      # Step 7: CRITICAL - Clean up sensitive files
+      - name: Clean up
+        if: always()
+        run: |
+          shred -u ./ssh/id_rsa || rm -f ./ssh/id_rsa
+          rm -f ./ssl/certificate.pem
+          rmdir ./ssh ./ssl

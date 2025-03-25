@@ -1,4 +1,4 @@
-name: Test PASM Vault Action with UserPass Auth
+name: Test Secret Vault Action with UserPass Auth
 
 on:
   workflow_dispatch:  # Allow manual trigger
