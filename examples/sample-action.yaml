@@ -1,4 +1,4 @@
-name: Test Secret Vault Action with UserPass Auth
+name: Test Secrets Vault Action with UserPass Auth
 
 on:
   workflow_dispatch:  # Allow manual trigger
@@ -10,7 +10,7 @@ on:
       - '.github/workflows/test-pasm-vault-userpass.yml'
 
 jobs:
-  test-vault-userpass-auth:
+  test-secrets-vault-userpass-auth:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code

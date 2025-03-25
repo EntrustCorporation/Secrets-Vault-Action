@@ -30,7 +30,7 @@ const originalReadFileSync = fs.readFileSync;
 const originalExistsSync = fs.existsSync;
 const originalUnlinkSync = fs.unlinkSync;
 
-describe('PASM Vault Action', () => {
+describe('Secrets Vault Action', () => {
   beforeEach(() => {
     // Clear all mocks before each test
     jest.clearAllMocks();
@@ -38,7 +38,7 @@ describe('PASM Vault Action', () => {
     // Setup default input values
     core.getInput.mockImplementation((name) => {
       const inputs = {
-        'base_url': 'https://pasm-api.example.com',
+        'base_url': 'https://secrets-api.example.com',
         'api_token': 'mock-token',
         'box_id': 'mock-box-id',
         'secret_id': 'mock-secret-id',
@@ -82,7 +82,7 @@ describe('PASM Vault Action', () => {
 
     // Verify axios was called with the right parameters
     expect(axios.post).toHaveBeenCalledWith(
-      'https://pasm-api.example.com/vault/1.0/CheckoutSecret/',
+      'https://secrets-api.example.com/vault/1.0/CheckoutSecret/',
       {
         box_id: 'mock-box-id',
         secret_id: 'mock-secret-id'
@@ -115,7 +115,7 @@ describe('PASM Vault Action', () => {
     // Enable CA cert in mock
     core.getInput = jest.fn().mockImplementation((name) => {
       const inputs = {
-        'base_url': 'https://pasm-api.example.com',
+        'base_url': 'https://secrets-api.example.com',
         'api_token': 'mock-token',
         'box_id': 'mock-box-id',
         'secret_id': 'mock-secret-id',
