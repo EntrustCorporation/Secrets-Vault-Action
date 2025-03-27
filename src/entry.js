@@ -1,7 +1,12 @@
-const { run } = require('./action');
+const core = require('@actions/core');
+const { exportSecrets } = require('./action');
 
 // Execute the action
-run().catch(error => {
-  console.error('Action failed:', error);
-  process.exit(1);
-});
+(async () => {
+    try {
+        await core.group('Get Vault Secrets', exportSecrets);
+    } catch (error) {
+        core.setOutput("errorMessage", error.message);
+        core.setFailed(error.message);
+    }
+})();

@@ -30267,7 +30267,7 @@ const { createAuthenticator } = __nccwpck_require__(4915);
 
 const checkoutSecretAPI = "/vault/1.0/CheckoutSecret/"
 
-async function run() {
+async function exportSecrets() {
   let tempCertPath = null;
   
   try {
@@ -30302,18 +30302,22 @@ async function run() {
     });
 
     // Parse secrets from input
-    for (const { outputType, boxName, secretName, destination } of parseSecrets(secretsInput)) {
-      core.info(`Fetching secret: ${secretName} from box: ${boxName}`);
-      const secretValue = await fetchSecretFromVault(boxName, secretName, authenticator, baseUrl, httpsAgent);
+    for (const { secretType, outputType, boxID, secretID, destination } of parseSecrets(secretsInput)) {
+      if (secretType === 'p12') {
+        core.info(`Detected p12 secret type for: ${secretID}`);
+        throw new Error(`Detected p12 secret type for: ${secretID}, p12 secrets are not supported yet`);
+      } else {
+        core.info(`Fetching secret: ${secretID} from box: ${boxID}`);
+        const secretValue = await fetchSecretFromVault(boxID, secretID, authenticator, baseUrl, httpsAgent);
+        core.setSecret(secretValue);
 
-      if (outputType === 'env') {
-        core.exportVariable(destination, secretValue);
-        // core.setOutput(destination, secretValue);
-      } else if (outputType === 'file') {
-        fs.writeFileSync(destination, secretValue);
+        if (outputType === 'env') {
+          core.exportVariable(destination, secretValue);
+        } else if (outputType === 'file') {
+          fs.writeFileSync(destination, secretValue);
+        }
+        core.setOutput(destination, secretValue);
       }
-      core.setOutput(destination, secretValue);
-
     }
   } catch (error) {
     core.setFailed(error.message);
@@ -30339,22 +30343,26 @@ function *parseSecrets(secretsStr) {
     if (!trimmedEntry) continue;
     
     const [key, val] = trimmedEntry.split('|').map(s => s.trim());
-    // key format: secret.<outputType>.<boxName>.<secretName>
+    // key format: secret.<outputType>.<boxName/boxID>.<secretName/secretID>
     const parts = key.split('.');
-    if (parts.length === 4 && parts[0] === 'secret') {
-      const [, outputType, boxName, secretName] = parts;
-      yield { outputType, boxName, secretName, destination: val };
+    // Checking for optional 5-part pattern: secret.<type>.<outputType>.<boxName/boxID>.<secretName/secretID>
+    if (parts.length === 5 && parts[0] === 'secret') {
+      const [, secretType, outputType, boxID, secretID] = parts;
+      yield { secretType, outputType, boxID, secretID, destination: val };
+    } else if (parts.length === 4 && parts[0] === 'secret') {
+      const [, outputType, boxID, secretID] = parts;
+      yield { secretType: undefined, outputType, boxID, secretID, destination: val };
     }
   }
 }
 
-async function fetchSecretFromVault(boxName, secretName, authenticator, baseUrl, httpsAgent) {
+async function fetchSecretFromVault(boxID, secretID, authenticator, baseUrl, httpsAgent) {
   try {
     const authHeaders = await authenticator.getAuthHeaders();
     const config = { headers: authHeaders, httpsAgent, timeout: 10000 };
     const response = await axios.post(
       `${baseUrl}${checkoutSecretAPI}`,
-      { box_id: boxName, secret_id: secretName },
+      { box_id: boxID, secret_id: secretID },
       config
     );
     if (!response.data) {
@@ -30370,7 +30378,7 @@ async function fetchSecretFromVault(boxName, secretName, authenticator, baseUrl,
   }
 }
 
-module.exports = { run };
+module.exports = { exportSecrets };
 
 
 /***/ }),
@@ -37214,13 +37222,18 @@ module.exports = JSON.parse('{"application/1d-interleaved-parityfec":{"source":"
 var __webpack_exports__ = {};
 // This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
 (() => {
-const { run } = __nccwpck_require__(3348);
+const core = __nccwpck_require__(2186);
+const { exportSecrets } = __nccwpck_require__(3348);
 
 // Execute the action
-run().catch(error => {
-  console.error('Action failed:', error);
-  process.exit(1);
-});
+(async () => {
+    try {
+        await core.group('Get Vault Secrets', exportSecrets);
+    } catch (error) {
+        core.setOutput("errorMessage", error.message);
+        core.setFailed(error.message);
+    }
+})();
 
 })();
 

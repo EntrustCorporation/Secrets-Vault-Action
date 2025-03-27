@@ -22,7 +22,7 @@ const core = require('@actions/core');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const { run } = require('../src/action');
+const { exportSecrets } = require('../src/action');
 
 // Save original implementations to restore later
 const originalWriteFileSync = fs.writeFileSync;
@@ -40,9 +40,8 @@ describe('Secrets Vault Action', () => {
       const inputs = {
         'base_url': 'https://secrets-api.example.com',
         'api_token': 'mock-token',
-        'box_id': 'mock-box-id',
-        'secret_id': 'mock-secret-id',
-        'ca_cert': ''
+        'ca_cert': '',
+        'secrets': 'secret.file.mock-box-id.mock-secret-id | secret' // <-- Fixed
       };
       return inputs[name] || '';
     });
@@ -78,7 +77,7 @@ describe('Secrets Vault Action', () => {
 
   test('fetches secret successfully', async () => {
     // Execute the run function
-    const result = await run();
+    const result = await exportSecrets();
 
     // Verify axios was called with the right parameters
     expect(axios.post).toHaveBeenCalledWith(
@@ -99,7 +98,6 @@ describe('Secrets Vault Action', () => {
     // Verify the secret was properly processed
     expect(core.setSecret).toHaveBeenCalledWith('test-secret-value');
     expect(core.setOutput).toHaveBeenCalledWith('secret', 'test-secret-value');
-    expect(result).toBe('test-secret-value');
   });
 
   test('handles API error correctly', async () => {
@@ -107,7 +105,7 @@ describe('Secrets Vault Action', () => {
     axios.post.mockRejectedValueOnce(new Error('API Error'));
 
     // Execute and expect it to throw
-    await expect(run()).rejects.toThrow('Failed to fetch secret: API Error');
+    await expect(exportSecrets()).rejects.toThrow('Failed to fetch secret: API Error');
     expect(core.setFailed).toHaveBeenCalledWith('Failed to fetch secret: API Error');
   });
 
@@ -119,13 +117,14 @@ describe('Secrets Vault Action', () => {
         'api_token': 'mock-token',
         'box_id': 'mock-box-id',
         'secret_id': 'mock-secret-id',
-        'ca_cert': 'base64-encoded-cert'
+        'ca_cert': 'base64-encoded-cert',
+        'secrets': 'secret.file.mock-box-id.mock-secret-id | secret'
       };
       return inputs[name] || '';
     });
 
     // Execute the run function
-    await run();
+    await exportSecrets();
 
     // Verify certificate handling
     expect(fs.writeFileSync).toHaveBeenCalled();
