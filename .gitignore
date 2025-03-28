@@ -134,3 +134,7 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+/integration_tests/.env.integration
+/integration_tests/.env.integration.token
+/integration_tests/.env.integration.userpass

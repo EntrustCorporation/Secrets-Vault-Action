@@ -119,4 +119,4 @@ async function fetchSecretFromVault(boxID, secretID, authenticator, baseUrl, htt
   }
 }
 
-module.exports = { exportSecrets };
+module.exports = { exportSecrets, fetchSecretFromVault };

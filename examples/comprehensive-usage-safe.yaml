@@ -18,7 +18,6 @@ jobs:
             secret.env.AWS.accessKey | AWS_ACCESS_KEY_ID
             secret.env.AWS.secretKey | AWS_SECRET_ACCESS_KEY
             secret.env.SSH.privateKey | SSH_KEY
-            secret.env.Certificates.sslCert | SSL_CERT
 
       # Step 2: Create files manually when needed
       - name: Create temporary files
