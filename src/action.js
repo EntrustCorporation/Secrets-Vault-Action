@@ -55,7 +55,8 @@ async function exportSecrets() {
         if (outputType === 'env') {
           core.exportVariable(destination, secretValue);
         } else if (outputType === 'file') {
-          fs.writeFileSync(destination, secretValue);
+          throw new Error(`File output type is not supported yet`);
+          // fs.writeFileSync(destination, secretValue);
         }
         core.setOutput(destination, secretValue);
       }

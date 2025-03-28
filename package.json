@@ -1,7 +1,7 @@
 {
   "name": "secrets-vault-action",
   "version": "1.0.0",
-  "description": "GitHub Action to fetch secrets from a Entrust Keycontrol Vault",
+  "description": "GitHub Action to fetch secrets from a Entrust Keycontrol Secret Vault",
   "main": "src/entry.js",
   "scripts": {
     "prepare": "npm run build",

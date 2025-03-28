@@ -1,5 +1,5 @@
-name: 'Fetch Secret JS'
-description: 'JavaScript version of the action to fetch secrets from a vault'
+name: 'secrets-vault-action'
+description: 'GitHub Action to fetch secrets from a Entrust Keycontrol Secret Vault'
 inputs:
   base_url:
     description: 'The base URL of the vault API'
@@ -18,10 +18,10 @@ inputs:
     description: 'Password for userpass authentication'
     required: false
   vault_uid:
-    description: 'Vault UID for login'
+    description: 'Vault UID for login, required for userpass authentication'
     required: false
   secrets:
-    description: 'Multi-line string mapping output type, box name, and secret name to environment variable or file path'
+    description: 'Multi-line string mapping box name, and secret name to environment variable'
     required: true
 outputs:
   secret:
