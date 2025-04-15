@@ -17,7 +17,7 @@ const USERPASS_AUTH = 'userpass';
 const VAULT_AUTH_HEADER = 'X-Vault-Auth';
 
 
-export default {
+module.exports = {
   BASE_URL,
   AUTH_TYPE,
   USERNAME,
