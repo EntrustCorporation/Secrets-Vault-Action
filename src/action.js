@@ -54,6 +54,7 @@ async function exportSecrets() {
 
     // Parse secrets from input
     for (const { secretType, boxID, secretID, destination } of parseSecrets(secretsInput)) {
+      core.debug(`Processing secret: ${secretID} from box: ${boxID} to destination: ${destination}`);
       if (secretType === 'p12') {
         core.info(`Detected p12 secret type for: ${secretID}`);
         throw new Error(`Detected p12 secret type for: ${secretID}, p12 secrets are not supported yet`);
