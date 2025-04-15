@@ -92,10 +92,10 @@ function *parseSecrets(secretsStr) {
     
     const [key, val] = trimmedEntry.split('|').map(s => s.trim());
     const parts = key.split('.');
-    if (parts.length === 5 && parts[0] === 'secret') {
+    if (parts.length === 4 && parts[0] === 'secret') {
       const [, secretType, boxID, secretID] = parts;
       yield { secretType, boxID, secretID, destination: val };
-    } else if (parts.length === 4 && parts[0] === 'secret') {
+    } else if (parts.length === 3 && parts[0] === 'secret') {
       const [, boxID, secretID] = parts;
       yield { secretType: undefined, boxID, secretID, destination: val };
     }
