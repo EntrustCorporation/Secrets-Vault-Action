@@ -192,4 +192,6 @@ jobs:
 
 ## Additional Resources
 
-For more information about using secrets in GitHub Actions, refer to the [GitHub documentation on using secrets](https://docs.github.com/en/actions/security-for-github-actions/security-guides/using-secrets-in-github-actions).
+-  [GitHub documentation on using secrets](https://docs.github.com/en/actions/security-for-github-actions/security-guides/using-secrets-in-github-actions).
+
+- [GitHub Actions Features](https://github.com/features/actions)
