@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const { createAuthenticator } = require('./auth');
-import {BASE_URL, CA_CERT, TLS_VERIFY_SKIP, SECRETS} from './constants.mjs';
+const {BASE_URL, CA_CERT, TLS_VERIFY_SKIP, SECRETS} =  require('./constants.js');
 
 const checkoutSecretAPI = "/vault/1.0/CheckoutSecret/"
 

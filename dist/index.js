@@ -30255,12 +30255,8 @@ module.exports = {
 /***/ }),
 
 /***/ 3348:
-/***/ ((module, __webpack_exports__, __nccwpck_require__) => {
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
-__nccwpck_require__.r(__webpack_exports__);
-/* harmony import */ var _constants_mjs__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(2651);
-/* module decorator */ module = __nccwpck_require__.hmd(module);
 const core = __nccwpck_require__(2186);
 const axios = __nccwpck_require__(8757);
 const https = __nccwpck_require__(5687);
@@ -30268,7 +30264,7 @@ const fs = __nccwpck_require__(7147);
 const path = __nccwpck_require__(1017);
 const os = __nccwpck_require__(2037);
 const { createAuthenticator } = __nccwpck_require__(4915);
-
+const {BASE_URL, CA_CERT, TLS_VERIFY_SKIP, SECRETS} =  __nccwpck_require__(4438);
 
 const checkoutSecretAPI = "/vault/1.0/CheckoutSecret/"
 
@@ -30276,10 +30272,10 @@ async function exportSecrets() {
   let tempCertPath = null;
   
   try {
-    const baseUrl = core.getInput(_constants_mjs__WEBPACK_IMPORTED_MODULE_0__/* .BASE_URL */ ._n, { required: true });
-    const caCert = core.getInput(_constants_mjs__WEBPACK_IMPORTED_MODULE_0__/* .CA_CERT */ .gJ);
-    const secretsInput = core.getInput(_constants_mjs__WEBPACK_IMPORTED_MODULE_0__/* .SECRETS */ .$M, { required: true });
-    const tls_verify_skip = core.getInput(_constants_mjs__WEBPACK_IMPORTED_MODULE_0__/* .TLS_VERIFY_SKIP */ .dn);
+    const baseUrl = core.getInput(BASE_URL, { required: true });
+    const caCert = core.getInput(CA_CERT);
+    const secretsInput = core.getInput(SECRETS, { required: true });
+    const tls_verify_skip = core.getInput(TLS_VERIFY_SKIP);
 
     core.info(`Parsing secrets: ${secretsInput}`);
 
@@ -30394,16 +30390,12 @@ module.exports = { exportSecrets, fetchSecretFromVault };
 /***/ }),
 
 /***/ 4915:
-/***/ ((module, __webpack_exports__, __nccwpck_require__) => {
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-"use strict";
-__nccwpck_require__.r(__webpack_exports__);
-/* harmony import */ var _constants_mjs__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(2651);
-/* module decorator */ module = __nccwpck_require__.hmd(module);
 const core = __nccwpck_require__(2186);
 const axios = __nccwpck_require__(8757);
 
-
+const { AUTH_TYPE, TOKEN_AUTH, USERPASS_AUTH, VAULT_AUTH_HEADER, USERNAME, PASSWORD, VAULT_UID, API_TOKEN } = __nccwpck_require__(4438);
 
 /**
  * Factory function to create the appropriate authenticator
@@ -30411,15 +30403,15 @@ const axios = __nccwpck_require__(8757);
  * @return {Object} Authenticator instance
  */
 function createAuthenticator(config) {
-  const authType = core.getInput(_constants_mjs__WEBPACK_IMPORTED_MODULE_0__/* .AUTH_TYPE */ .$o) || _constants_mjs__WEBPACK_IMPORTED_MODULE_0__/* .TOKEN_AUTH */ .j4;
+  const authType = core.getInput(AUTH_TYPE) || TOKEN_AUTH;
 
   switch (authType.toLowerCase()) {
-    case _constants_mjs__WEBPACK_IMPORTED_MODULE_0__/* .TOKEN_AUTH */ .j4:
+    case TOKEN_AUTH:
       return new TokenAuthenticator(config);
-    case _constants_mjs__WEBPACK_IMPORTED_MODULE_0__/* .USERPASS_AUTH */ .zG:
+    case USERPASS_AUTH:
       return new UserPassAuthenticator(config);
     default:
-      throw new Error(`Unsupported authentication type: ${authType}, should be either ${_constants_mjs__WEBPACK_IMPORTED_MODULE_0__/* .TOKEN_AUTH */ .j4} or ${_constants_mjs__WEBPACK_IMPORTED_MODULE_0__/* .USERPASS_AUTH */ .zG}`);
+      throw new Error(`Unsupported authentication type: ${authType}, should be either ${TOKEN_AUTH} or ${USERPASS_AUTH}`);
   }
 }
 
@@ -30444,12 +30436,12 @@ class BaseAuthenticator {
 class TokenAuthenticator extends BaseAuthenticator {
   constructor(config) {
     super(config);
-    this.token = core.getInput(_constants_mjs__WEBPACK_IMPORTED_MODULE_0__/* .API_TOKEN */ .E0, { required: true });
+    this.token = core.getInput(API_TOKEN, { required: true });
   }
 
   async getAuthHeaders() {
     return {
-      [_constants_mjs__WEBPACK_IMPORTED_MODULE_0__/* .VAULT_AUTH_HEADER */ .az]: this.token,
+      [VAULT_AUTH_HEADER]: this.token,
       'Content-Type': 'application/json'
     };
   }
@@ -30461,9 +30453,9 @@ class TokenAuthenticator extends BaseAuthenticator {
 class UserPassAuthenticator extends BaseAuthenticator {
   constructor(config) {
     super(config);
-    this.username = core.getInput(_constants_mjs__WEBPACK_IMPORTED_MODULE_0__/* .USERNAME */ .id, { required: true });
-    this.password = core.getInput(_constants_mjs__WEBPACK_IMPORTED_MODULE_0__/* .PASSWORD */ .Qj, { required: true });
-    this.vaultUId = core.getInput(_constants_mjs__WEBPACK_IMPORTED_MODULE_0__/* .VAULT_UID */ .eS, { required: true });
+    this.username = core.getInput(USERNAME, { required: true });
+    this.password = core.getInput(PASSWORD, { required: true });
+    this.vaultUId = core.getInput(VAULT_UID, { required: true });
     this.token = null;
     this.tokenExpiry = null;
   }
@@ -30474,7 +30466,7 @@ class UserPassAuthenticator extends BaseAuthenticator {
     }
     
     return {
-      [_constants_mjs__WEBPACK_IMPORTED_MODULE_0__/* .VAULT_AUTH_HEADER */ .az]: this.token,
+      [VAULT_AUTH_HEADER]: this.token,
       'Content-Type': 'application/json'
     };
   }
@@ -30532,6 +30524,46 @@ module.exports = {
   createAuthenticator
 };
 
+
+/***/ }),
+
+/***/ 4438:
+/***/ ((module) => {
+
+
+
+// These constants are used to define the input parameters for the GitHub Action
+const BASE_URL = 'base_url';
+const AUTH_TYPE = 'auth_type';
+const USERNAME = 'username';
+const PASSWORD = 'password';
+const API_TOKEN = 'api_token';
+const VAULT_UID = 'vault_uid';
+const CA_CERT = 'ca_cert';
+const TLS_VERIFY_SKIP = 'tls_verify_skip';
+const SECRETS = 'secrets';
+
+const TOKEN_AUTH = 'token';
+const USERPASS_AUTH = 'userpass';
+
+const VAULT_AUTH_HEADER = 'X-Vault-Auth';
+
+module.exports = {
+    BASE_URL,
+    AUTH_TYPE,
+    USERNAME,
+    PASSWORD,
+    API_TOKEN,
+    VAULT_UID,
+    CA_CERT,
+    TLS_VERIFY_SKIP,
+    SECRETS,
+    
+    TOKEN_AUTH,
+    USERPASS_AUTH,
+    
+    VAULT_AUTH_HEADER
+    };
 
 /***/ }),
 
@@ -37189,44 +37221,6 @@ module.exports = axios;
 
 /***/ }),
 
-/***/ 2651:
-/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
-
-"use strict";
-/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
-/* harmony export */   "$M": () => (/* binding */ SECRETS),
-/* harmony export */   "$o": () => (/* binding */ AUTH_TYPE),
-/* harmony export */   "E0": () => (/* binding */ API_TOKEN),
-/* harmony export */   "Qj": () => (/* binding */ PASSWORD),
-/* harmony export */   "_n": () => (/* binding */ BASE_URL),
-/* harmony export */   "az": () => (/* binding */ VAULT_AUTH_HEADER),
-/* harmony export */   "dn": () => (/* binding */ TLS_VERIFY_SKIP),
-/* harmony export */   "eS": () => (/* binding */ VAULT_UID),
-/* harmony export */   "gJ": () => (/* binding */ CA_CERT),
-/* harmony export */   "id": () => (/* binding */ USERNAME),
-/* harmony export */   "j4": () => (/* binding */ TOKEN_AUTH),
-/* harmony export */   "zG": () => (/* binding */ USERPASS_AUTH)
-/* harmony export */ });
-
-
-// These constants are used to define the input parameters for the GitHub Action
-const BASE_URL = 'base_url';
-const AUTH_TYPE = 'auth_type';
-const USERNAME = 'username';
-const PASSWORD = 'password';
-const API_TOKEN = 'api_token';
-const VAULT_UID = 'vault_uid';
-const CA_CERT = 'ca_cert';
-const TLS_VERIFY_SKIP = 'tls_verify_skip';
-const SECRETS = 'secrets';
-
-const TOKEN_AUTH = 'token';
-const USERPASS_AUTH = 'userpass';
-
-const VAULT_AUTH_HEADER = 'X-Vault-Auth';
-
-/***/ }),
-
 /***/ 3765:
 /***/ ((module) => {
 
@@ -37249,8 +37243,8 @@ module.exports = JSON.parse('{"application/1d-interleaved-parityfec":{"source":"
 /******/ 		}
 /******/ 		// Create a new module (and put it into the cache)
 /******/ 		var module = __webpack_module_cache__[moduleId] = {
-/******/ 			id: moduleId,
-/******/ 			loaded: false,
+/******/ 			// no module.id needed
+/******/ 			// no module.loaded needed
 /******/ 			exports: {}
 /******/ 		};
 /******/ 	
@@ -37263,57 +37257,11 @@ module.exports = JSON.parse('{"application/1d-interleaved-parityfec":{"source":"
 /******/ 			if(threw) delete __webpack_module_cache__[moduleId];
 /******/ 		}
 /******/ 	
-/******/ 		// Flag the module as loaded
-/******/ 		module.loaded = true;
-/******/ 	
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
 /******/ 	}
 /******/ 	
 /************************************************************************/
-/******/ 	/* webpack/runtime/define property getters */
-/******/ 	(() => {
-/******/ 		// define getter functions for harmony exports
-/******/ 		__nccwpck_require__.d = (exports, definition) => {
-/******/ 			for(var key in definition) {
-/******/ 				if(__nccwpck_require__.o(definition, key) && !__nccwpck_require__.o(exports, key)) {
-/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
-/******/ 				}
-/******/ 			}
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/harmony module decorator */
-/******/ 	(() => {
-/******/ 		__nccwpck_require__.hmd = (module) => {
-/******/ 			module = Object.create(module);
-/******/ 			if (!module.children) module.children = [];
-/******/ 			Object.defineProperty(module, 'exports', {
-/******/ 				enumerable: true,
-/******/ 				set: () => {
-/******/ 					throw new Error('ES Modules may not assign module.exports or exports.*, Use ESM export syntax, instead: ' + module.id);
-/******/ 				}
-/******/ 			});
-/******/ 			return module;
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
-/******/ 	(() => {
-/******/ 		__nccwpck_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/make namespace object */
-/******/ 	(() => {
-/******/ 		// define __esModule on exports
-/******/ 		__nccwpck_require__.r = (exports) => {
-/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
-/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
-/******/ 			}
-/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
-/******/ 		};
-/******/ 	})();
-/******/ 	
 /******/ 	/* webpack/runtime/compat */
 /******/ 	
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
