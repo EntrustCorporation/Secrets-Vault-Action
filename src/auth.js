@@ -1,21 +1,23 @@
 const core = require('@actions/core');
 const axios = require('axios');
 
+import { AUTH_TYPE, TOKEN_AUTH, USERPASS_AUTH, VAULT_AUTH_HEADER, USERNAME, PASSWORD, VAULT_UID, TOKEN } from './constants';
+
 /**
  * Factory function to create the appropriate authenticator
  * @param {Object} config Configuration object with auth details
  * @return {Object} Authenticator instance
  */
 function createAuthenticator(config) {
-  const authType = core.getInput('auth_type') || 'token';
-  
+  const authType = core.getInput(AUTH_TYPE) || TOKEN_AUTH;
+
   switch (authType.toLowerCase()) {
-    case 'token':
+    case TOKEN_AUTH:
       return new TokenAuthenticator(config);
-    case 'userpass':
+    case USERPASS_AUTH:
       return new UserPassAuthenticator(config);
     default:
-      throw new Error(`Unsupported authentication type: ${authType}`);
+      throw new Error(`Unsupported authentication type: ${authType}, should be either ${TOKEN_AUTH} or ${USERPASS_AUTH}`);
   }
 }
 
@@ -40,12 +42,12 @@ class BaseAuthenticator {
 class TokenAuthenticator extends BaseAuthenticator {
   constructor(config) {
     super(config);
-    this.token = core.getInput('api_token', { required: true });
+    this.token = core.getInput(TOKEN, { required: true });
   }
 
   async getAuthHeaders() {
     return {
-      'X-Vault-Auth': this.token,
+      [VAULT_AUTH_HEADER]: this.token,
       'Content-Type': 'application/json'
     };
   }
@@ -57,9 +59,9 @@ class TokenAuthenticator extends BaseAuthenticator {
 class UserPassAuthenticator extends BaseAuthenticator {
   constructor(config) {
     super(config);
-    this.username = core.getInput('username', { required: true });
-    this.password = core.getInput('password', { required: true });
-    this.vaultUId = core.getInput('vault_uid', { required: true });
+    this.username = core.getInput(USERNAME, { required: true });
+    this.password = core.getInput(PASSWORD, { required: true });
+    this.vaultUId = core.getInput(VAULT_UID, { required: true });
     this.token = null;
     this.tokenExpiry = null;
   }

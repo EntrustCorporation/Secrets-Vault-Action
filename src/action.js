@@ -5,6 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const { createAuthenticator } = require('./auth');
+import {BASE_URL, CA_CERT, TLS_VERIFY_SKIP, SECRETS} from './constants';
 
 const checkoutSecretAPI = "/vault/1.0/CheckoutSecret/"
 
@@ -12,10 +13,10 @@ async function exportSecrets() {
   let tempCertPath = null;
   
   try {
-    const baseUrl = core.getInput('base_url', { required: true });
-    const caCert = core.getInput('ca_cert');
-    const secretsInput = core.getInput('secrets', { required: true });
-    const tls_verify_skip = core.getInput('tls_verify_skip');
+    const baseUrl = core.getInput(BASE_URL, { required: true });
+    const caCert = core.getInput(CA_CERT);
+    const secretsInput = core.getInput(SECRETS, { required: true });
+    const tls_verify_skip = core.getInput(TLS_VERIFY_SKIP);
 
     core.info(`Parsing secrets: ${secretsInput}`);
 
@@ -80,7 +81,7 @@ async function exportSecrets() {
   }
 }
 
-// Minimal parser for "secret.env.Box1.accessKey: AWS_ACCESS_KEY_ID"
+// Minimal parser for "secret.BoxName.SecretName: ENV_VAR_NAME"
 function *parseSecrets(secretsStr) {
   const entries = secretsStr.split(';');
   for (const entry of entries) {
