@@ -30255,8 +30255,12 @@ module.exports = {
 /***/ }),
 
 /***/ 3348:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+/***/ ((module, __webpack_exports__, __nccwpck_require__) => {
 
+"use strict";
+__nccwpck_require__.r(__webpack_exports__);
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(4438);
+/* module decorator */ module = __nccwpck_require__.hmd(module);
 const core = __nccwpck_require__(2186);
 const axios = __nccwpck_require__(8757);
 const https = __nccwpck_require__(5687);
@@ -30265,19 +30269,24 @@ const path = __nccwpck_require__(1017);
 const os = __nccwpck_require__(2037);
 const { createAuthenticator } = __nccwpck_require__(4915);
 
+
 const checkoutSecretAPI = "/vault/1.0/CheckoutSecret/"
 
 async function exportSecrets() {
   let tempCertPath = null;
   
   try {
-    const baseUrl = core.getInput('base_url', { required: true });
-    const caCert = core.getInput('ca_cert');
-    const secretsInput = core.getInput('secrets', { required: true });
+    const baseUrl = core.getInput(_constants__WEBPACK_IMPORTED_MODULE_0__.BASE_URL, { required: true });
+    const caCert = core.getInput(_constants__WEBPACK_IMPORTED_MODULE_0__.CA_CERT);
+    const secretsInput = core.getInput(_constants__WEBPACK_IMPORTED_MODULE_0__.SECRETS, { required: true });
+    const tls_verify_skip = core.getInput(_constants__WEBPACK_IMPORTED_MODULE_0__.TLS_VERIFY_SKIP);
+
     core.info(`Parsing secrets: ${secretsInput}`);
 
-    // Create https agent with CA cert if provided
-    let httpsAgent = undefined;
+    let httpAgentConfig = {
+
+    }
+
     if (caCert) {
       core.info('Using provided CA certificate for self-signed certificate support');
       
@@ -30287,12 +30296,17 @@ async function exportSecrets() {
       fs.writeFileSync(tempCertPath, certBuffer);
       core.info(`CA certificate written to temporary file: ${tempCertPath}`);
       
-      httpsAgent = new https.Agent({
-        ca: fs.readFileSync(tempCertPath)
-      });
+      httpAgentConfig['ca'] =  fs.readFileSync(tempCertPath)
     } else {
       core.info('No CA certificate provided, using default certificate validation');
     }
+
+    if (tls_verify_skip === true || tls_verify_skip === 'true') {
+      httpsAgentConfig['rejectUnauthorized'] = false;
+      core.info('Skipping TLS verification, we recommend not to use this in production');
+    }
+
+    const httpsAgent = new https.Agent(httpAgentConfig);
 
     // Initialize the authenticator
     const authenticator = createAuthenticator({
@@ -30302,7 +30316,7 @@ async function exportSecrets() {
     });
 
     // Parse secrets from input
-    for (const { secretType, outputType, boxID, secretID, destination } of parseSecrets(secretsInput)) {
+    for (const { secretType, boxID, secretID, destination } of parseSecrets(secretsInput)) {
       if (secretType === 'p12') {
         core.info(`Detected p12 secret type for: ${secretID}`);
         throw new Error(`Detected p12 secret type for: ${secretID}, p12 secrets are not supported yet`);
@@ -30310,12 +30324,7 @@ async function exportSecrets() {
         core.info(`Fetching secret: ${secretID} from box: ${boxID}`);
         const secretValue = await fetchSecretFromVault(boxID, secretID, authenticator, baseUrl, httpsAgent);
         core.setSecret(secretValue);
-
-        if (outputType === 'env') {
-          core.exportVariable(destination, secretValue);
-        } else if (outputType === 'file') {
-          fs.writeFileSync(destination, secretValue);
-        }
+        core.exportVariable(destination, secretValue);
         core.setOutput(destination, secretValue);
       }
     }
@@ -30335,7 +30344,7 @@ async function exportSecrets() {
   }
 }
 
-// Minimal parser for "secret.env.Box1.accessKey: AWS_ACCESS_KEY_ID"
+// Minimal parser for "secret.BoxName.SecretName: ENV_VAR_NAME"
 function *parseSecrets(secretsStr) {
   const entries = secretsStr.split(';');
   for (const entry of entries) {
@@ -30343,15 +30352,13 @@ function *parseSecrets(secretsStr) {
     if (!trimmedEntry) continue;
     
     const [key, val] = trimmedEntry.split('|').map(s => s.trim());
-    // key format: secret.<outputType>.<boxName/boxID>.<secretName/secretID>
     const parts = key.split('.');
-    // Checking for optional 5-part pattern: secret.<type>.<outputType>.<boxName/boxID>.<secretName/secretID>
     if (parts.length === 5 && parts[0] === 'secret') {
-      const [, secretType, outputType, boxID, secretID] = parts;
-      yield { secretType, outputType, boxID, secretID, destination: val };
+      const [, secretType, boxID, secretID] = parts;
+      yield { secretType, boxID, secretID, destination: val };
     } else if (parts.length === 4 && parts[0] === 'secret') {
-      const [, outputType, boxID, secretID] = parts;
-      yield { secretType: undefined, outputType, boxID, secretID, destination: val };
+      const [, boxID, secretID] = parts;
+      yield { secretType: undefined, boxID, secretID, destination: val };
     }
   }
 }
@@ -30359,35 +30366,44 @@ function *parseSecrets(secretsStr) {
 async function fetchSecretFromVault(boxID, secretID, authenticator, baseUrl, httpsAgent) {
   try {
     const authHeaders = await authenticator.getAuthHeaders();
-    const config = { headers: authHeaders, httpsAgent, timeout: 10000 };
+    const config = { headers: authHeaders, httpsAgent, timeout: 10000, tls };
     const response = await axios.post(
       `${baseUrl}${checkoutSecretAPI}`,
       { box_id: boxID, secret_id: secretID },
       config
     );
     if (!response.data) {
+      core.error(`Empty response received from API for boxID: ${boxID}, secretID: ${secretID}`);
       throw new Error('Empty response received from API');
     }
     const secretValue = response.data.secret_data;
     if (!secretValue) {
+      core.error(`Secret data not found in response: ${JSON.stringify(response.data)}`);
       throw new Error(`Secret data not found in response: ${JSON.stringify(response.data)}`);
     }
     return secretValue;
   } catch (error) {
+    core.error(`Error fetching secret for boxID: ${boxID}, secretID: ${secretID} - ${error.message}`);
     throw new Error(`Failed to fetch secret: ${error.message}`);
   }
 }
 
-module.exports = { exportSecrets };
+module.exports = { exportSecrets, fetchSecretFromVault };
 
 
 /***/ }),
 
 /***/ 4915:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+/***/ ((module, __webpack_exports__, __nccwpck_require__) => {
 
+"use strict";
+__nccwpck_require__.r(__webpack_exports__);
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(4438);
+/* module decorator */ module = __nccwpck_require__.hmd(module);
 const core = __nccwpck_require__(2186);
 const axios = __nccwpck_require__(8757);
+
+
 
 /**
  * Factory function to create the appropriate authenticator
@@ -30395,15 +30411,15 @@ const axios = __nccwpck_require__(8757);
  * @return {Object} Authenticator instance
  */
 function createAuthenticator(config) {
-  const authType = core.getInput('auth_type') || 'token';
-  
+  const authType = core.getInput(_constants__WEBPACK_IMPORTED_MODULE_0__.AUTH_TYPE) || _constants__WEBPACK_IMPORTED_MODULE_0__.TOKEN_AUTH;
+
   switch (authType.toLowerCase()) {
-    case 'token':
+    case _constants__WEBPACK_IMPORTED_MODULE_0__.TOKEN_AUTH:
       return new TokenAuthenticator(config);
-    case 'userpass':
+    case _constants__WEBPACK_IMPORTED_MODULE_0__.USERPASS_AUTH:
       return new UserPassAuthenticator(config);
     default:
-      throw new Error(`Unsupported authentication type: ${authType}`);
+      throw new Error(`Unsupported authentication type: ${authType}, should be either ${_constants__WEBPACK_IMPORTED_MODULE_0__.TOKEN_AUTH} or ${_constants__WEBPACK_IMPORTED_MODULE_0__.USERPASS_AUTH}`);
   }
 }
 
@@ -30428,12 +30444,12 @@ class BaseAuthenticator {
 class TokenAuthenticator extends BaseAuthenticator {
   constructor(config) {
     super(config);
-    this.token = core.getInput('api_token', { required: true });
+    this.token = core.getInput(_constants__WEBPACK_IMPORTED_MODULE_0__.API_TOKEN, { required: true });
   }
 
   async getAuthHeaders() {
     return {
-      'X-Vault-Auth': this.token,
+      [_constants__WEBPACK_IMPORTED_MODULE_0__.VAULT_AUTH_HEADER]: this.token,
       'Content-Type': 'application/json'
     };
   }
@@ -30445,9 +30461,9 @@ class TokenAuthenticator extends BaseAuthenticator {
 class UserPassAuthenticator extends BaseAuthenticator {
   constructor(config) {
     super(config);
-    this.username = core.getInput('username', { required: true });
-    this.password = core.getInput('password', { required: true });
-    this.vaultUId = core.getInput('vault_uid', { required: true });
+    this.username = core.getInput(_constants__WEBPACK_IMPORTED_MODULE_0__.USERNAME, { required: true });
+    this.password = core.getInput(_constants__WEBPACK_IMPORTED_MODULE_0__.PASSWORD, { required: true });
+    this.vaultUId = core.getInput(_constants__WEBPACK_IMPORTED_MODULE_0__.VAULT_UID, { required: true });
     this.token = null;
     this.tokenExpiry = null;
   }
@@ -30458,7 +30474,7 @@ class UserPassAuthenticator extends BaseAuthenticator {
     }
     
     return {
-      'X-Vault-Auth': this.token,
+      [_constants__WEBPACK_IMPORTED_MODULE_0__.VAULT_AUTH_HEADER]: this.token,
       'Content-Type': 'application/json'
     };
   }
@@ -30516,6 +30532,48 @@ module.exports = {
   createAuthenticator
 };
 
+
+/***/ }),
+
+/***/ 4438:
+/***/ (() => {
+
+"use strict";
+
+
+// These constants are used to define the input parameters for the GitHub Action
+const BASE_URL = 'base_url';
+const AUTH_TYPE = 'auth_type';
+const USERNAME = 'username';
+const PASSWORD = 'password';
+const API_TOKEN = 'api_token';
+const VAULT_UID = 'vault_uid';
+const CA_CERT = 'ca_cert';
+const TLS_VERIFY_SKIP = 'tls_verify_skip';
+const SECRETS = 'secrets';
+
+const TOKEN_AUTH = 'token';
+const USERPASS_AUTH = 'userpass';
+
+const VAULT_AUTH_HEADER = 'X-Vault-Auth';
+
+
+/* unused harmony default export */ var __WEBPACK_DEFAULT_EXPORT__ = ({
+  BASE_URL,
+  AUTH_TYPE,
+  USERNAME,
+  PASSWORD,
+  API_TOKEN,
+  VAULT_UID,
+  CA_CERT,
+  TLS_VERIFY_SKIP,
+  SECRETS,
+
+  TOKEN_AUTH,
+  USERPASS_AUTH,
+
+  VAULT_AUTH_HEADER
+});
 
 /***/ }),
 
@@ -37195,8 +37253,8 @@ module.exports = JSON.parse('{"application/1d-interleaved-parityfec":{"source":"
 /******/ 		}
 /******/ 		// Create a new module (and put it into the cache)
 /******/ 		var module = __webpack_module_cache__[moduleId] = {
-/******/ 			// no module.id needed
-/******/ 			// no module.loaded needed
+/******/ 			id: moduleId,
+/******/ 			loaded: false,
 /******/ 			exports: {}
 /******/ 		};
 /******/ 	
@@ -37209,11 +37267,40 @@ module.exports = JSON.parse('{"application/1d-interleaved-parityfec":{"source":"
 /******/ 			if(threw) delete __webpack_module_cache__[moduleId];
 /******/ 		}
 /******/ 	
+/******/ 		// Flag the module as loaded
+/******/ 		module.loaded = true;
+/******/ 	
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
 /******/ 	}
 /******/ 	
 /************************************************************************/
+/******/ 	/* webpack/runtime/harmony module decorator */
+/******/ 	(() => {
+/******/ 		__nccwpck_require__.hmd = (module) => {
+/******/ 			module = Object.create(module);
+/******/ 			if (!module.children) module.children = [];
+/******/ 			Object.defineProperty(module, 'exports', {
+/******/ 				enumerable: true,
+/******/ 				set: () => {
+/******/ 					throw new Error('ES Modules may not assign module.exports or exports.*, Use ESM export syntax, instead: ' + module.id);
+/******/ 				}
+/******/ 			});
+/******/ 			return module;
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/make namespace object */
+/******/ 	(() => {
+/******/ 		// define __esModule on exports
+/******/ 		__nccwpck_require__.r = (exports) => {
+/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 			}
+/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 		};
+/******/ 	})();
+/******/ 	
 /******/ 	/* webpack/runtime/compat */
 /******/ 	
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
