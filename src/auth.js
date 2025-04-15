@@ -1,7 +1,7 @@
 const core = require('@actions/core');
 const axios = require('axios');
 
-import { AUTH_TYPE, TOKEN_AUTH, USERPASS_AUTH, VAULT_AUTH_HEADER, USERNAME, PASSWORD, VAULT_UID, TOKEN } from './constants';
+import { AUTH_TYPE, TOKEN_AUTH, USERPASS_AUTH, VAULT_AUTH_HEADER, USERNAME, PASSWORD, VAULT_UID, API_TOKEN } from './constants';
 
 /**
  * Factory function to create the appropriate authenticator
@@ -42,7 +42,7 @@ class BaseAuthenticator {
 class TokenAuthenticator extends BaseAuthenticator {
   constructor(config) {
     super(config);
-    this.token = core.getInput(TOKEN, { required: true });
+    this.token = core.getInput(API_TOKEN, { required: true });
   }
 
   async getAuthHeaders() {
@@ -72,7 +72,7 @@ class UserPassAuthenticator extends BaseAuthenticator {
     }
     
     return {
-      'X-Vault-Auth': this.token,
+      [VAULT_AUTH_HEADER]: this.token,
       'Content-Type': 'application/json'
     };
   }

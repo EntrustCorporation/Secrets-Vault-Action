@@ -39,7 +39,7 @@ The Secret Vault Action enables GitHub workflows to securely fetch secrets from 
 | `auth_type` | Authentication type (e.g., 'userpass') | Yes | token |
 | `username` | Username for authentication | Yes, if the `auth_type` is `userpass` | |
 | `password` | Password for authentication | Yes, if the `auth_type` is `userpass` | |
-| `token` | Vault Auth Token | if `auth_type` is `token` | |
+| `api_token` | Vault Auth Token | if `auth_type` is `token` | |
 | `vault_uid` | Unique identifier for the vault | Yes, if the `auth_type` is `userpass` | |
 | `ca_cert` | Base64-encoded CA certificate for self-signed certificates | No | |
 | `secrets` | Multi-line list of secrets to retrieve (see format below) | Yes | |

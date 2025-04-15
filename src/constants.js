@@ -5,7 +5,7 @@ const BASE_URL = 'base_url';
 const AUTH_TYPE = 'auth_type';
 const USERNAME = 'username';
 const PASSWORD = 'password';
-const TOKEN = 'token';
+const API_TOKEN = 'api_token';
 const VAULT_UID = 'vault_uid';
 const CA_CERT = 'ca_cert';
 const TLS_VERIFY_SKIP = 'tls_verify_skip';
@@ -22,7 +22,7 @@ export default {
   AUTH_TYPE,
   USERNAME,
   PASSWORD,
-  TOKEN,
+  API_TOKEN,
   VAULT_UID,
   CA_CERT,
   TLS_VERIFY_SKIP,
