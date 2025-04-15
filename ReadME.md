@@ -95,6 +95,7 @@ The Secret Vault Action enables GitHub workflows to securely fetch secrets from 
 ```yaml
 name: Deploy Application
 
+```yaml
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -114,11 +115,15 @@ jobs:
             Box2.privateKey | SSH_KEY;
             Box1.sslCert | SSL_CERT;
 
-      - name: Create temporary files
+      - name: Create SSH directory and key
         run: |
-          mkdir -p -m 700 ./ssh ./ssl
+          mkdir -p -m 700 ./ssh
           echo "$SSH_KEY" > ./ssh/id_rsa
           chmod 600 ./ssh/id_rsa
+
+      - name: Create SSL directory and certificate
+        run: |
+          mkdir -p -m 700 ./ssl
           echo "$SSL_CERT" > ./ssl/certificate.pem
           chmod 644 ./ssl/certificate.pem
 
@@ -139,12 +144,13 @@ jobs:
         run: |
           ./deploy.sh --environment=production --cert=./ssl/certificate.pem
 
-      - name: Clean up
+      - name: Clean up SSH and SSL files
         if: always()
         run: |
           shred -u ./ssh/id_rsa || rm -f ./ssh/id_rsa
           rm -f ./ssl/certificate.pem
           rmdir ./ssh ./ssl
+```
 ```
 
 ## Access Patterns for Secrets
@@ -189,6 +195,35 @@ jobs:
     run: |
       shred -u secrets.json || rm -f secrets.json
   ```
+
+### Note:
+Secrets of type `file` are base64-encoded. To utilize these secrets, decode them using the `base64` command available on Linux or macOS. For example:
+
+```bash
+mkdir -p -m 700 ./temp_dir
+echo "$SECRET" | base64 --decode > ./temp_dir/secret_file
+```
+
+### Best Practices for Handling Secrets
+
+When working with secrets in your workflows, follow these best practices to ensure security and minimize risks:
+
+- **Restrict File Permissions**: If you write secrets into files, set strict permissions to prevent unauthorized access. For example:
+  ```bash
+  chmod 600 ./temp_dir/secret_file
+  ```
+
+- **Avoid Unnecessary File Creation**: Only create files from secrets if absolutely necessary. Use environment variables or action outputs whenever possible.
+
+- **Secure Cleanup**: Always delete sensitive files after use to mitigate security risks. Use secure deletion methods like `shred` when available. Example:
+  ```yaml
+  - name: Clean up decoded secret file
+    if: always()
+    run: |
+      shred -u ./temp_dir/secret_file || rm -f ./temp_dir/secret_file
+  ```
+
+- **Mask Sensitive Data**: Ensure that secrets are masked in logs and not exposed during workflow execution.
 
 ## Additional Resources
 
