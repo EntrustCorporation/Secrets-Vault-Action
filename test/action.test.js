@@ -41,7 +41,7 @@ describe('Secrets Vault Action', () => {
         'base_url': 'https://secrets-api.example.com',
         'api_token': 'mock-token',
         'ca_cert': '',
-        'secrets': 'secret.file.mock-box-id.mock-secret-id | secret' // <-- Fixed
+        'secrets': 'mock-box-id.mock-secret-id | secret' // Updated to match expected format
       };
       return inputs[name] || '';
     });
@@ -116,9 +116,8 @@ describe('Secrets Vault Action', () => {
         'base_url': 'https://secrets-api.example.com',
         'api_token': 'mock-token',
         'box_id': 'mock-box-id',
-        'secret_id': 'mock-secret-id',
         'ca_cert': 'base64-encoded-cert',
-        'secrets': 'secret.file.mock-box-id.mock-secret-id | secret'
+        'secrets': 'mock-box-id.mock-secret-id | secret' // Updated to match expected format
       };
       return inputs[name] || '';
     });
@@ -129,5 +128,59 @@ describe('Secrets Vault Action', () => {
     // Verify certificate handling
     expect(fs.writeFileSync).toHaveBeenCalled();
     expect(fs.unlinkSync).toHaveBeenCalled();
+  });
+
+  test('handles multiline secrets input correctly', async () => {
+    // Mock multiline secrets input
+    core.getInput.mockImplementation((name) => {
+      const inputs = {
+        'base_url': 'https://secrets-api.example.com',
+        'api_token': 'mock-token',
+        'ca_cert': '',
+        'secrets': `mock-box-id1.mock-secret-id1 | secret1;\nmock-box-id2.mock-secret-id2 | secret2;` // Multiline secrets
+      };
+      return inputs[name] || '';
+    });
+
+    // Execute the run function
+    await exportSecrets();
+
+    // Verify axios was called for each secret
+    expect(axios.post).toHaveBeenCalledWith(
+      'https://secrets-api.example.com/vault/1.0/CheckoutSecret/',
+      {
+        box_id: 'mock-box-id1',
+        secret_id: 'mock-secret-id1'
+      },
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          'X-Vault-Auth': 'mock-token',
+          'Content-Type': 'application/json'
+        }),
+        timeout: 10000
+      })
+    );
+
+    // Verify the secrets were properly processed
+    expect(core.setSecret).toHaveBeenCalledWith('test-secret-value');
+    expect(core.setOutput).toHaveBeenCalledWith('secret1', 'test-secret-value');
+
+    expect(axios.post).toHaveBeenCalledWith(
+      'https://secrets-api.example.com/vault/1.0/CheckoutSecret/',
+      {
+        box_id: 'mock-box-id2',
+        secret_id: 'mock-secret-id2'
+      },
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          'X-Vault-Auth': 'mock-token',
+          'Content-Type': 'application/json'
+        }),
+        timeout: 10000
+      })
+    );
+
+    expect(core.setSecret).toHaveBeenCalledWith('test-secret-value');
+    expect(core.setOutput).toHaveBeenCalledWith('secret2', 'test-secret-value');
   });
 });
