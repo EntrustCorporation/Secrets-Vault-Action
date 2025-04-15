@@ -87,8 +87,8 @@ The Secret Vault Action enables GitHub workflows to securely fetch secrets from 
     vault_uid: ${{ secrets.VAULT_UID }}
     ca_cert: ${{ secrets.CA_CERT }}
     secrets: |
-      secret.Box1.apiKey | API_KEY;
-      secret.Box2.databasePassword | DB_PASSWORD;
+      Box1.apiKey | API_KEY;
+      Box2.databasePassword | DB_PASSWORD;
 ```
 
 ### Comprehensive Usage Example
@@ -109,10 +109,10 @@ jobs:
           password: ${{ secrets.VAULT_PASSWORD }}
           vault_uid: ${{ secrets.VAULT_UID }}
           secrets: |
-            secret.AWS.accessKey | AWS_ACCESS_KEY_ID;
-            secret.AWS.secretKey | AWS_SECRET_ACCESS_KEY;
-            secret.SSH.privateKey | SSH_KEY;
-            secret.Certificates.sslCert | SSL_CERT;
+            Box1.accessKey | AWS_ACCESS_KEY_ID;
+            Box1.secretKey | AWS_SECRET_ACCESS_KEY;
+            Box2.privateKey | SSH_KEY;
+            Box1.sslCert | SSL_CERT;
 
       - name: Create temporary files
         run: |
