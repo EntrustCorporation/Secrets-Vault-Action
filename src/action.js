@@ -84,6 +84,7 @@ async function exportSecrets() {
 // Minimal parser for "secret.BoxName.SecretName: ENV_VAR_NAME"
 function *parseSecrets(secretsStr) {
   const entries = secretsStr.split(';');
+  core.info(`Identified ${entries.length} entries in secrets input`);
   for (const entry of entries) {
     const trimmedEntry = entry.trim();
     if (!trimmedEntry) continue;
