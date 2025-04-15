@@ -64,12 +64,12 @@ The Secret Vault Action enables GitHub workflows to securely fetch secrets from 
 
 ## Secret Output Format
 
-- **Format**: `secret.BoxName.SecretName | ENV_VAR_NAME` (Alternatively, you can use BoxID and SecretID in place of BoxName and SecretName, if required)
+- **Format**: `BoxName.SecretName | ENV_VAR_NAME` (Alternatively, you can use BoxID and SecretID in place of BoxName and SecretName, if required)
 - **Description**: Makes secrets available as environment variables to subsequent workflow steps.
 - **Advantages**: Values are automatically masked in logs.
 - **Example**:
   ```yaml
-  secret.Box1.apiKey | API_KEY
+  Box1.apiKey | API_KEY
   ```
 
 ## Examples
