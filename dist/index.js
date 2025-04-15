@@ -30259,8 +30259,7 @@ module.exports = {
 
 "use strict";
 __nccwpck_require__.r(__webpack_exports__);
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(4438);
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__nccwpck_require__.n(_constants__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _constants_mjs__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(2651);
 /* module decorator */ module = __nccwpck_require__.hmd(module);
 const core = __nccwpck_require__(2186);
 const axios = __nccwpck_require__(8757);
@@ -30277,10 +30276,10 @@ async function exportSecrets() {
   let tempCertPath = null;
   
   try {
-    const baseUrl = core.getInput(_constants__WEBPACK_IMPORTED_MODULE_0__.BASE_URL, { required: true });
-    const caCert = core.getInput(_constants__WEBPACK_IMPORTED_MODULE_0__.CA_CERT);
-    const secretsInput = core.getInput(_constants__WEBPACK_IMPORTED_MODULE_0__.SECRETS, { required: true });
-    const tls_verify_skip = core.getInput(_constants__WEBPACK_IMPORTED_MODULE_0__.TLS_VERIFY_SKIP);
+    const baseUrl = core.getInput(_constants_mjs__WEBPACK_IMPORTED_MODULE_0__/* .BASE_URL */ ._n, { required: true });
+    const caCert = core.getInput(_constants_mjs__WEBPACK_IMPORTED_MODULE_0__/* .CA_CERT */ .gJ);
+    const secretsInput = core.getInput(_constants_mjs__WEBPACK_IMPORTED_MODULE_0__/* .SECRETS */ .$M, { required: true });
+    const tls_verify_skip = core.getInput(_constants_mjs__WEBPACK_IMPORTED_MODULE_0__/* .TLS_VERIFY_SKIP */ .dn);
 
     core.info(`Parsing secrets: ${secretsInput}`);
 
@@ -30399,8 +30398,7 @@ module.exports = { exportSecrets, fetchSecretFromVault };
 
 "use strict";
 __nccwpck_require__.r(__webpack_exports__);
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(4438);
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__nccwpck_require__.n(_constants__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _constants_mjs__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(2651);
 /* module decorator */ module = __nccwpck_require__.hmd(module);
 const core = __nccwpck_require__(2186);
 const axios = __nccwpck_require__(8757);
@@ -30413,15 +30411,15 @@ const axios = __nccwpck_require__(8757);
  * @return {Object} Authenticator instance
  */
 function createAuthenticator(config) {
-  const authType = core.getInput(_constants__WEBPACK_IMPORTED_MODULE_0__.AUTH_TYPE) || _constants__WEBPACK_IMPORTED_MODULE_0__.TOKEN_AUTH;
+  const authType = core.getInput(_constants_mjs__WEBPACK_IMPORTED_MODULE_0__/* .AUTH_TYPE */ .$o) || _constants_mjs__WEBPACK_IMPORTED_MODULE_0__/* .TOKEN_AUTH */ .j4;
 
   switch (authType.toLowerCase()) {
-    case _constants__WEBPACK_IMPORTED_MODULE_0__.TOKEN_AUTH:
+    case _constants_mjs__WEBPACK_IMPORTED_MODULE_0__/* .TOKEN_AUTH */ .j4:
       return new TokenAuthenticator(config);
-    case _constants__WEBPACK_IMPORTED_MODULE_0__.USERPASS_AUTH:
+    case _constants_mjs__WEBPACK_IMPORTED_MODULE_0__/* .USERPASS_AUTH */ .zG:
       return new UserPassAuthenticator(config);
     default:
-      throw new Error(`Unsupported authentication type: ${authType}, should be either ${_constants__WEBPACK_IMPORTED_MODULE_0__.TOKEN_AUTH} or ${_constants__WEBPACK_IMPORTED_MODULE_0__.USERPASS_AUTH}`);
+      throw new Error(`Unsupported authentication type: ${authType}, should be either ${_constants_mjs__WEBPACK_IMPORTED_MODULE_0__/* .TOKEN_AUTH */ .j4} or ${_constants_mjs__WEBPACK_IMPORTED_MODULE_0__/* .USERPASS_AUTH */ .zG}`);
   }
 }
 
@@ -30446,12 +30444,12 @@ class BaseAuthenticator {
 class TokenAuthenticator extends BaseAuthenticator {
   constructor(config) {
     super(config);
-    this.token = core.getInput(_constants__WEBPACK_IMPORTED_MODULE_0__.API_TOKEN, { required: true });
+    this.token = core.getInput(_constants_mjs__WEBPACK_IMPORTED_MODULE_0__/* .API_TOKEN */ .E0, { required: true });
   }
 
   async getAuthHeaders() {
     return {
-      [_constants__WEBPACK_IMPORTED_MODULE_0__.VAULT_AUTH_HEADER]: this.token,
+      [_constants_mjs__WEBPACK_IMPORTED_MODULE_0__/* .VAULT_AUTH_HEADER */ .az]: this.token,
       'Content-Type': 'application/json'
     };
   }
@@ -30463,9 +30461,9 @@ class TokenAuthenticator extends BaseAuthenticator {
 class UserPassAuthenticator extends BaseAuthenticator {
   constructor(config) {
     super(config);
-    this.username = core.getInput(_constants__WEBPACK_IMPORTED_MODULE_0__.USERNAME, { required: true });
-    this.password = core.getInput(_constants__WEBPACK_IMPORTED_MODULE_0__.PASSWORD, { required: true });
-    this.vaultUId = core.getInput(_constants__WEBPACK_IMPORTED_MODULE_0__.VAULT_UID, { required: true });
+    this.username = core.getInput(_constants_mjs__WEBPACK_IMPORTED_MODULE_0__/* .USERNAME */ .id, { required: true });
+    this.password = core.getInput(_constants_mjs__WEBPACK_IMPORTED_MODULE_0__/* .PASSWORD */ .Qj, { required: true });
+    this.vaultUId = core.getInput(_constants_mjs__WEBPACK_IMPORTED_MODULE_0__/* .VAULT_UID */ .eS, { required: true });
     this.token = null;
     this.tokenExpiry = null;
   }
@@ -30476,7 +30474,7 @@ class UserPassAuthenticator extends BaseAuthenticator {
     }
     
     return {
-      [_constants__WEBPACK_IMPORTED_MODULE_0__.VAULT_AUTH_HEADER]: this.token,
+      [_constants_mjs__WEBPACK_IMPORTED_MODULE_0__/* .VAULT_AUTH_HEADER */ .az]: this.token,
       'Content-Type': 'application/json'
     };
   }
@@ -30534,47 +30532,6 @@ module.exports = {
   createAuthenticator
 };
 
-
-/***/ }),
-
-/***/ 4438:
-/***/ ((module) => {
-
-
-
-// These constants are used to define the input parameters for the GitHub Action
-const BASE_URL = 'base_url';
-const AUTH_TYPE = 'auth_type';
-const USERNAME = 'username';
-const PASSWORD = 'password';
-const API_TOKEN = 'api_token';
-const VAULT_UID = 'vault_uid';
-const CA_CERT = 'ca_cert';
-const TLS_VERIFY_SKIP = 'tls_verify_skip';
-const SECRETS = 'secrets';
-
-const TOKEN_AUTH = 'token';
-const USERPASS_AUTH = 'userpass';
-
-const VAULT_AUTH_HEADER = 'X-Vault-Auth';
-
-
-module.exports = {
-  BASE_URL,
-  AUTH_TYPE,
-  USERNAME,
-  PASSWORD,
-  API_TOKEN,
-  VAULT_UID,
-  CA_CERT,
-  TLS_VERIFY_SKIP,
-  SECRETS,
-
-  TOKEN_AUTH,
-  USERPASS_AUTH,
-
-  VAULT_AUTH_HEADER
-};
 
 /***/ }),
 
@@ -37232,6 +37189,44 @@ module.exports = axios;
 
 /***/ }),
 
+/***/ 2651:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
+
+"use strict";
+/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
+/* harmony export */   "$M": () => (/* binding */ SECRETS),
+/* harmony export */   "$o": () => (/* binding */ AUTH_TYPE),
+/* harmony export */   "E0": () => (/* binding */ API_TOKEN),
+/* harmony export */   "Qj": () => (/* binding */ PASSWORD),
+/* harmony export */   "_n": () => (/* binding */ BASE_URL),
+/* harmony export */   "az": () => (/* binding */ VAULT_AUTH_HEADER),
+/* harmony export */   "dn": () => (/* binding */ TLS_VERIFY_SKIP),
+/* harmony export */   "eS": () => (/* binding */ VAULT_UID),
+/* harmony export */   "gJ": () => (/* binding */ CA_CERT),
+/* harmony export */   "id": () => (/* binding */ USERNAME),
+/* harmony export */   "j4": () => (/* binding */ TOKEN_AUTH),
+/* harmony export */   "zG": () => (/* binding */ USERPASS_AUTH)
+/* harmony export */ });
+
+
+// These constants are used to define the input parameters for the GitHub Action
+const BASE_URL = 'base_url';
+const AUTH_TYPE = 'auth_type';
+const USERNAME = 'username';
+const PASSWORD = 'password';
+const API_TOKEN = 'api_token';
+const VAULT_UID = 'vault_uid';
+const CA_CERT = 'ca_cert';
+const TLS_VERIFY_SKIP = 'tls_verify_skip';
+const SECRETS = 'secrets';
+
+const TOKEN_AUTH = 'token';
+const USERPASS_AUTH = 'userpass';
+
+const VAULT_AUTH_HEADER = 'X-Vault-Auth';
+
+/***/ }),
+
 /***/ 3765:
 /***/ ((module) => {
 
@@ -37276,18 +37271,6 @@ module.exports = JSON.parse('{"application/1d-interleaved-parityfec":{"source":"
 /******/ 	}
 /******/ 	
 /************************************************************************/
-/******/ 	/* webpack/runtime/compat get default export */
-/******/ 	(() => {
-/******/ 		// getDefaultExport function for compatibility with non-harmony modules
-/******/ 		__nccwpck_require__.n = (module) => {
-/******/ 			var getter = module && module.__esModule ?
-/******/ 				() => (module['default']) :
-/******/ 				() => (module);
-/******/ 			__nccwpck_require__.d(getter, { a: getter });
-/******/ 			return getter;
-/******/ 		};
-/******/ 	})();
-/******/ 	
 /******/ 	/* webpack/runtime/define property getters */
 /******/ 	(() => {
 /******/ 		// define getter functions for harmony exports

@@ -1,7 +1,7 @@
 const core = require('@actions/core');
 const axios = require('axios');
 
-import { AUTH_TYPE, TOKEN_AUTH, USERPASS_AUTH, VAULT_AUTH_HEADER, USERNAME, PASSWORD, VAULT_UID, API_TOKEN } from './constants';
+import { AUTH_TYPE, TOKEN_AUTH, USERPASS_AUTH, VAULT_AUTH_HEADER, USERNAME, PASSWORD, VAULT_UID, API_TOKEN } from './constants.mjs';
 
 /**
  * Factory function to create the appropriate authenticator
