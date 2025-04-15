@@ -28,11 +28,12 @@ inputs:
     description: 'Vault UID for login, required for userpass authentication'
     required: false
   secrets:
-    description: 'Multi-line string mapping box name, and secret name to environment variable'
+    description: 'Multi-line string mapping box name / box ID, and secret name / secret ID to environment variable'
     required: true
 outputs:
-  secret:
-    description: 'The fetched secret'
+  destination:
+    description: 'Environment variable name where the secret will be stored, as specified in the secrets input'
+    value: ${{ steps.fetch-secret.outputs.destination }}
 runs:
   using: 'node20'
   main: 'dist/index.js'

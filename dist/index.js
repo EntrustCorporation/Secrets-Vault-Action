@@ -30341,7 +30341,7 @@ async function exportSecrets() {
   }
 }
 
-// Minimal parser for "secret.BoxName.SecretName: ENV_VAR_NAME"
+// Minimal parser for "BoxName.SecretName: ENV_VAR_NAME"
 function *parseSecrets(secretsStr) {
   const entries = secretsStr.split(';');
   core.info(`Identified ${entries.length} entries in secrets input`);
@@ -30350,13 +30350,13 @@ function *parseSecrets(secretsStr) {
     if (!trimmedEntry) continue;
     
     const [key, val] = trimmedEntry.split('|').map(s => s.trim());
-    const parts = key.split('.');
-    if (parts.length === 4 && parts[0] === 'secret') {
-      const [, secretType, boxID, secretID] = parts;
-      yield { secretType, boxID, secretID, destination: val };
-    } else if (parts.length === 3 && parts[0] === 'secret') {
-      const [, boxID, secretID] = parts;
-      yield { secretType: undefined, boxID, secretID, destination: val };
+    const parts = key.trim().split('.');
+    if (parts.length === 2) {
+      const [boxID, secretID] = parts;
+      yield { boxID, secretID, destination: val.trim() };
+    } else {
+      core.error(`Invalid entry format: ${entry}`);
+      throw new Error(`Invalid secret entry format: ${entry}. Expected format: BoxName.SecretName | ENV_VAR_NAME`);
     }
   }
 }
