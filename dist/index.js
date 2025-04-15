@@ -30364,7 +30364,7 @@ function *parseSecrets(secretsStr) {
 async function fetchSecretFromVault(boxID, secretID, authenticator, baseUrl, httpsAgent) {
   try {
     const authHeaders = await authenticator.getAuthHeaders();
-    const config = { headers: authHeaders, httpsAgent, timeout: 10000, tls };
+    const config = { headers: authHeaders, httpsAgent, timeout: 10000 };
     const response = await axios.post(
       `${baseUrl}${checkoutSecretAPI}`,
       { box_id: boxID, secret_id: secretID },
