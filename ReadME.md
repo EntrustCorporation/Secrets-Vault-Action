@@ -1,6 +1,18 @@
 ## Overview
 The Secret Vault Action enables GitHub workflows to securely fetch secrets from an Entrust KeyControl Secret Vault and make them available during workflow execution. This document provides a comprehensive guide to using the action, including authentication methods, secret output formats, security considerations, and usage examples.
 
+## YAML Configuration Generator
+
+To make it easier to configure the Secret Vault Action in your workflows, we provide a user-friendly YAML configuration generator:
+
+**[Secret Vault Action Configuration Generator](https://entrustcorporation.github.io/Secret-Vault-Action/yaml-config-generator/)**
+
+This tool allows you to:
+- Select your preferred authentication method
+- Configure all necessary parameters
+- Add secret mappings with a simple interface
+- Generate ready-to-use YAML configuration for your GitHub workflows
+
 ## Authentication Methods
 
 ### Token Authentication
