@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secret Vault Action Configuration Generator | Entrust</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <!-- Use the existing logo.png file -->
+                <img src="logo.png" alt="Entrust Logo" class="entrust-logo">
+            </div>
+            <h1>Secret Vault Action<span class="highlight"> Configuration Generator</span></h1>
+            <p>Easily create YAML configuration for your GitHub Action workflows</p>
+        </header>
+
+        <div class="card">
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="form">Create Configuration</button>
+                <button class="tab-btn" data-tab="docs">Documentation</button>
+            </div>
+
+            <div class="alert warning-alert">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>Security Notice: Always use GitHub secrets <code>${{ secrets.SECRET_NAME }}</code> for sensitive values. Never use plain text for tokens, usernames, or passwords.</span>
+            </div>
+
+            <div class="tab-content">
+                <div id="form" class="tab-pane active">
+                    <form id="config-form">
+                        <div class="form-section">
+                            <h2>Basic Configuration</h2>
+                            <div class="form-group">
+                                <label for="step-id">Step ID:</label>
+                                <input type="text" id="step-id" value="fetch-secrets" placeholder="Step ID for referencing in later steps">
+                                <div class="tooltip">
+                                    <i class="fas fa-info-circle"></i>
+                                    <span class="tooltip-text">This ID is used to reference the step later in your workflow</span>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="base-url-type">Base URL Input Type:</label>
+                                <select id="base-url-type">
+                                    <option value="secret">GitHub Secret</option>
+                                    <option value="plaintext">Plain Text</option>
+                                </select>
+                                <div class="tooltip">
+                                    <i class="fas fa-info-circle"></i>
+                                    <span class="tooltip-text">Choose how to provide the base URL</span>
+                                </div>
+                            </div>
+
+                            <div id="base-url-secret" class="form-group">
+                                <label for="base-url-secret-input">Base URL (from GitHub Secret):</label>
+                                <input type="text" id="base-url-secret-input" placeholder="${{ secrets.VAULT_URL }}" required>
+                                <div class="tooltip">
+                                    <i class="fas fa-info-circle"></i>
+                                    <span class="tooltip-text">The base URL of your Entrust KeyControl Secret Vault API stored as a GitHub Secret</span>
+                                </div>
+                            </div>
+
+                            <div id="base-url-plaintext" class="form-group hidden">
+                                <label for="base-url-plaintext-input">Base URL (Plain Text):</label>
+                                <input type="text" id="base-url-plaintext-input" placeholder="https://your-vault-url.com">
+                                <div class="tooltip">
+                                    <i class="fas fa-info-circle"></i>
+                                    <span class="tooltip-text">The base URL of your Entrust KeyControl Secret Vault API in plain text (not recommended for production)</span>
+                                </div>
+                                <div class="input-warning">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    Not recommended for production workflows
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="auth-type">Authentication Type:</label>
+                                <select id="auth-type">
+                                    <option value="userpass">Username/Password</option>
+                                    <option value="token">Token</option>
+                                </select>
+                                <div class="tooltip">
+                                    <i class="fas fa-info-circle"></i>
+                                    <span class="tooltip-text">Choose how to authenticate with the vault</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="userpass-auth" class="form-section">
+                            <h2>Username/Password Authentication</h2>
+                            <div class="form-group">
+                                <label for="username">Username:</label>
+                                <input type="text" id="username" placeholder="${{ secrets.VAULT_USERNAME }}">
+                                <div class="tooltip">
+                                    <i class="fas fa-info-circle"></i>
+                                    <span class="tooltip-text">Username for authentication</span>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="password">Password:</label>
+                                <input type="text" id="password" placeholder="${{ secrets.VAULT_PASSWORD }}">
+                                <div class="tooltip">
+                                    <i class="fas fa-info-circle"></i>
+                                    <span class="tooltip-text">Password for authentication</span>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="vault-uid">Vault UID:</label>
+                                <input type="text" id="vault-uid" placeholder="${{ secrets.VAULT_UID }}">
+                                <div class="tooltip">
+                                    <i class="fas fa-info-circle"></i>
+                                    <span class="tooltip-text">Unique identifier for the vault, required for userpass authentication</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="token-auth" class="form-section hidden">
+                            <h2>Token Authentication</h2>
+                            <div class="form-group">
+                                <label for="api-token">API Token:</label>
+                                <input type="text" id="api-token" placeholder="${{ secrets.API_TOKEN }}">
+                                <div class="tooltip">
+                                    <i class="fas fa-info-circle"></i>
+                                    <span class="tooltip-text">The API token for token-based authentication</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h2>Advanced Options</h2>
+                            
+                            <div class="form-group">
+                                <label for="ca-cert-type">CA Certificate Type:</label>
+                                <select id="ca-cert-type">
+                                    <option value="none">None</option>
+                                    <option value="secret">GitHub Secret</option>
+                                    <option value="file">PEM File</option>
+                                    <option value="base64">Base64 String</option>
+                                </select>
+                                <div class="tooltip">
+                                    <i class="fas fa-info-circle"></i>
+                                    <span class="tooltip-text">How to provide the CA certificate for self-signed certificates</span>
+                                </div>
+                            </div>
+
+                            <div id="ca-cert-secret" class="ca-cert-option hidden">
+                                <div class="form-group">
+                                    <label for="ca-cert-secret-input">CA Certificate GitHub Secret:</label>
+                                    <input type="text" id="ca-cert-secret-input" placeholder="${{ secrets.CA_CERT }}">
+                                    <div class="tooltip">
+                                        <i class="fas fa-info-circle"></i>
+                                        <span class="tooltip-text">GitHub Secret containing the base64 encoded CA certificate</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="ca-cert-file" class="ca-cert-option hidden">
+                                <div class="form-group">
+                                    <label for="ca-cert-file-input">CA Certificate PEM File:</label>
+                                    <input type="file" id="ca-cert-file-input" accept=".pem,.crt,.cert">
+                                    <div class="tooltip">
+                                        <i class="fas fa-info-circle"></i>
+                                        <span class="tooltip-text">Upload a PEM file that will be automatically converted to base64</span>
+                                    </div>
+                                </div>
+                                <div class="form-preview hidden" id="ca-cert-file-preview">
+                                    <p><strong>File loaded:</strong> <span id="ca-cert-filename"></span></p>
+                                    <p>This file will be automatically converted to base64 when generating the YAML.</p>
+                                </div>
+                            </div>
+
+                            <div id="ca-cert-base64" class="ca-cert-option hidden">
+                                <div class="form-group">
+                                    <label for="ca-cert-base64-input">Base64 Encoded CA Certificate:</label>
+                                    <textarea id="ca-cert-base64-input" placeholder="Paste your base64 encoded certificate here" rows="3"></textarea>
+                                    <div class="tooltip">
+                                        <i class="fas fa-info-circle"></i>
+                                        <span class="tooltip-text">Paste a base64 encoded CA certificate string</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="tls-verify-skip">Skip TLS Verification:</label>
+                                <select id="tls-verify-skip">
+                                    <option value="false">No</option>
+                                    <option value="true">Yes (Not recommended)</option>
+                                </select>
+                                <div class="tooltip">
+                                    <i class="fas fa-info-circle"></i>
+                                    <span class="tooltip-text">Skip TLS verification (not recommended for production)</span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="continue-on-error">Continue on Error:</label>
+                                <select id="continue-on-error">
+                                    <option value="false">No</option>
+                                    <option value="true">Yes</option>
+                                </select>
+                                <div class="tooltip">
+                                    <i class="fas fa-info-circle"></i>
+                                    <span class="tooltip-text">Whether to continue the workflow if this step fails</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h2>Secrets</h2>
+                            <p class="form-description">Specify the secrets to retrieve from the vault.</p>
+                            
+                            <div id="secrets-container">
+                                <!-- Initial secret mapping row -->
+                                <div class="secret-row">
+                                    <div class="form-group">
+                                        <label>Box Name/ID:</label>
+                                        <input type="text" class="box-name" placeholder="Box1" required>
+                                        <div class="tooltip">
+                                            <i class="fas fa-info-circle"></i>
+                                            <span class="tooltip-text">Name or ID of the box containing the secret</span>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Secret Name/ID:</label>
+                                        <input type="text" class="secret-name" placeholder="secretName" required>
+                                        <div class="tooltip">
+                                            <i class="fas fa-info-circle"></i>
+                                            <span class="tooltip-text">Name or ID of the secret to retrieve</span>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Environment Variable:</label>
+                                        <input type="text" class="env-var" placeholder="ENV_VAR_NAME" required>
+                                        <div class="tooltip">
+                                            <i class="fas fa-info-circle"></i>
+                                            <span class="tooltip-text">Name of environment variable where the secret will be available</span>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="icon-button remove-secret" title="Remove secret">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <button type="button" id="add-secret" class="button secondary">
+                                <i class="fas fa-plus"></i> Add Another Secret
+                            </button>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" id="generate-btn" class="button primary">
+                                <i class="fas fa-code"></i> Generate YAML
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div id="docs" class="tab-pane">
+                    <div class="documentation">
+                        <h2>Secret Vault Action</h2>
+                        <p>This GitHub Action allows you to fetch secrets from an Entrust KeyControl Secret Vault and make them available in your GitHub Actions workflow.</p>
+                        
+                        <div class="alert info-alert">
+                            <i class="fas fa-shield-alt"></i>
+                            <strong>Security Best Practice:</strong> Always store sensitive values like API tokens, usernames, and passwords in GitHub Secrets and reference them using <code>${{ secrets.SECRET_NAME }}</code> syntax.
+                        </div>
+                        
+                        <h3>Authentication Methods</h3>
+                        <div class="doc-section">
+                            <h4>Username/Password Authentication (Recommended)</h4>
+                            <p>Exchanges credentials for a temporary access token. This is more secure than persistent tokens as authentication is performed for each run.</p>
+                            
+                            <h4>Token Authentication</h4>
+                            <p>Uses a pre-generated API token for direct authentication. This is simpler but requires token management.</p>
+                        </div>
+                        
+                        <h3>Secret Format</h3>
+                        <div class="doc-section">
+                            <p>Secrets are specified in the format: <code>BoxName.SecretName | ENV_VAR_NAME;</code></p>
+                            <p>Multiple secrets can be specified, separated by semicolons.</p>
+                        </div>
+                        
+                        <h3>Output Usage</h3>
+                        <div class="doc-section">
+                            <p>Secrets are available as:</p>
+                            <ul>
+                                <li>Environment variables: <code>${ENV_VAR_NAME}</code></li>
+                                <li>Step outputs: <code>${{ steps.fetch-secret.outputs.ENV_VAR_NAME }}</code></li>
+                            </ul>
+                        </div>
+                        
+                        <h3>Example Workflow</h3>
+                        <div class="code-block">
+                            <pre><code>name: Deploy Application
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch secrets from vault
+        id: fetch-secrets
+        uses: EntrustCorporation/secrets-vault-action@v1
+        with:
+          base_url: ${{ secrets.VAULT_URL }}
+          auth_type: 'userpass'
+          username: ${{ secrets.VAULT_USERNAME }}
+          password: ${{ secrets.VAULT_PASSWORD }}
+          vault_uid: ${{ secrets.VAULT_UID }}
+          secrets: |
+            Box1.apiKey | API_KEY;
+            Box2.dbPass | DB_PASSWORD;
+
+      - name: Use secrets
+        run: |
+          echo "Using API_KEY: ${{ steps.fetch-secrets.outputs.API_KEY }}"
+          echo "Using DB_PASSWORD: ${DB_PASSWORD}"</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="result" class="card hidden">
+            <h2>Generated YAML Configuration</h2>
+            <div class="code-actions">
+                <button id="copy-yaml" class="button secondary">
+                    <i class="fas fa-copy"></i> Copy to Clipboard
+                </button>
+                <button id="back-to-form" class="button outline">
+                    <i class="fas fa-arrow-left"></i> Back to Form
+                </button>
+            </div>
+            <div class="code-block">
+                <pre><code id="yaml-output"></code></pre>
+            </div>
+        </div>
+
+        <footer>
+            <p>
+                <a href="https://github.com/EntrustCorporation/secrets-vault-action" target="_blank" rel="noopener noreferrer">
+                    <i class="fab fa-github"></i> Entrust Secret Vault Action
+                </a>
+            </p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
