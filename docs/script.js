@@ -1,4 +1,8 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Check for tab query parameter and set initial tab
+    const urlParams = new URLSearchParams(window.location.search);
+    const initialTab = urlParams.get('tab') || 'docs'; // Default to docs tab
+    
     // Tab switching functionality
     const tabBtns = document.querySelectorAll('.tab-btn');
     tabBtns.forEach(btn => {
@@ -12,8 +16,27 @@ document.addEventListener('DOMContentLoaded', function() {
             // Activate selected tab
             this.classList.add('active');
             document.getElementById(tabId).classList.add('active');
+            
+            // Update URL without refreshing page
+            const newUrl = new URL(window.location);
+            newUrl.searchParams.set('tab', tabId);
+            window.history.pushState({}, '', newUrl);
         });
     });
+
+    // Set initial active tab based on URL parameter
+    setActiveTab(initialTab);
+    
+    // Function to set active tab
+    function setActiveTab(tabId) {
+        const tabBtn = document.querySelector(`.tab-btn[data-tab="${tabId}"]`);
+        if (tabBtn) {
+            tabBtn.click();
+        } else {
+            // Default to the first tab if specified tab is invalid
+            document.querySelector('.tab-btn').click();
+        }
+    }
 
     // Auth type switching
     const authTypeSelect = document.getElementById('auth-type');

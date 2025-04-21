@@ -501,6 +501,147 @@ code {
     margin: 5px 0;
 }
 
+/* Parameter table styles */
+.params-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0 20px;
+    font-size: 0.9rem;
+}
+
+.params-table th,
+.params-table td {
+    padding: 8px 12px;
+    text-align: left;
+    border: 1px solid var(--border);
+}
+
+.params-table th {
+    background-color: var(--highlight-bg);
+    font-weight: 600;
+    color: var(--dark);
+}
+
+.params-table tr:nth-child(even) {
+    background-color: var(--highlight-bg);
+}
+
+.params-table tr:hover {
+    background-color: rgba(107, 31, 128, 0.05);
+}
+
+.params-table code {
+    background-color: rgba(0, 0, 0, 0.05);
+    padding: 2px 4px;
+    border-radius: 3px;
+}
+
+/* Anchor link offset for in-page navigation */
+.doc-section[id]::before {
+    content: '';
+    display: block;
+    height: 70px;
+    margin-top: -70px;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+/* Config Generator Link Styling */
+.config-generator-link {
+    margin: 20px 0;
+    padding: 15px;
+    background-color: var(--info-bg);
+    border-radius: 6px;
+    border-left: 4px solid var(--primary);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.config-generator-link .button {
+    margin-bottom: 5px;
+}
+
+.config-generator-link p {
+    margin-bottom: 0;
+    color: var(--dark);
+    font-size: 0.95rem;
+}
+
+/* Resources List Styling */
+.resources-list {
+    list-style: none;
+    padding: 0;
+    margin: 15px 0;
+}
+
+.resources-list li {
+    padding: 10px 15px;
+    margin-bottom: 10px;
+    background-color: var(--highlight-bg);
+    border-radius: 6px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    transition: transform 0.2s ease;
+}
+
+.resources-list li:hover {
+    transform: translateX(5px);
+}
+
+.resources-list li i {
+    color: var(--primary);
+    margin-top: 3px;
+}
+
+.resources-list li a {
+    font-weight: 600;
+    color: var(--primary);
+    text-decoration: none;
+    display: block;
+}
+
+.resources-list li a:hover {
+    text-decoration: underline;
+}
+
+.resources-list li span {
+    display: block;
+    font-size: 0.9rem;
+    color: var(--secondary);
+    margin-top: 3px;
+}
+
+.config-generator-callout {
+    margin-top: 25px;
+    padding: 15px;
+    background-color: var(--highlight-bg);
+    border-radius: 6px;
+    border-left: 4px solid var(--primary);
+    text-align: center;
+}
+
+.config-generator-callout h4 {
+    margin-top: 0;
+    color: var(--dark);
+}
+
+.config-generator-callout p {
+    margin-bottom: 0;
+}
+
+.config-generator-callout a {
+    color: var(--primary);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.config-generator-callout a:hover {
+    text-decoration: underline;
+}
+
 footer {
     text-align: center;
     margin-top: 2rem;
@@ -542,5 +683,10 @@ footer a:hover {
     
     h1 {
         font-size: 1.5rem;
+    }
+
+    .params-table {
+        display: block;
+        overflow-x: auto;
     }
 }

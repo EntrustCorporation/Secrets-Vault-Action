@@ -23,8 +23,8 @@
 
         <div class="card">
             <div class="tabs">
-                <button class="tab-btn active" data-tab="form">Create Configuration</button>
-                <button class="tab-btn" data-tab="docs">Documentation</button>
+                <button class="tab-btn active" data-tab="docs">Documentation</button>
+                <button class="tab-btn" data-tab="form">Create Configuration</button>
             </div>
 
             <div class="alert warning-alert">
@@ -33,7 +33,348 @@
             </div>
 
             <div class="tab-content">
-                <div id="form" class="tab-pane active">
+                <div id="docs" class="tab-pane active">
+                    <div class="documentation">
+                        <h2>Secret Vault Action</h2>
+                        <p>This GitHub Action allows you to fetch secrets from an Entrust KeyControl Secret Vault and make them available in your GitHub Actions workflow.</p>
+                        
+                        <div class="alert info-alert">
+                            <i class="fas fa-shield-alt"></i>
+                            <strong>Security Best Practice:</strong> Always store sensitive values like API tokens, usernames, and passwords in GitHub Secrets and reference them using <code>${{ secrets.SECRET_NAME }}</code> syntax.
+                        </div>
+                        
+                        <div class="doc-section" id="contents">
+                            <h3>Contents</h3>
+                            <ul>
+                                <li><a href="#authentication-methods">Authentication Methods</a></li>
+                                <li><a href="#usage">Usage Parameters</a></li>
+                                <li><a href="#action-workflow">Action Workflow</a></li>
+                                <li><a href="#secret-format">Secret Format</a></li>
+                                <li><a href="#access-patterns">Access Patterns</a></li>
+                                <li><a href="#examples">Examples</a></li>
+                                <li><a href="#best-practices">Best Practices</a></li>
+                                <li><a href="#cleanup">File Cleanup</a></li>
+                                <li><a href="#resources">Additional Resources</a></li>
+                            </ul>
+                            
+                            <div class="config-generator-link">
+                                <a href="?tab=form" class="button primary">
+                                    <i class="fas fa-wrench"></i> Create Your Configuration
+                                </a>
+                                <p>Use our interactive generator to create a custom configuration for your workflow.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="doc-section" id="authentication-methods">
+                            <h3>Authentication Methods</h3>
+                            
+                            <h4>Username/Password Authentication</h4>
+                            <p>Exchanges credentials for a temporary access token and authentication is performed for each run.</p>
+                            <p><strong>Example Input:</strong></p>
+                            <pre><code>auth_type: 'userpass'
+username: ${{ secrets.VAULT_USERNAME }}
+password: ${{ secrets.VAULT_PASSWORD }}</code></pre>
+                            
+                            <h4>Token Authentication</h4>
+                            <p>Uses a pre-generated API token for direct authentication. This is simpler but requires token management.</p>
+                            <p><strong>Example Input:</strong></p>
+                            <pre><code>auth_type: 'token'
+api_token: ${{ secrets.VAULT_TOKEN }}</code></pre>
+                        </div>
+                        
+                        <div class="doc-section" id="usage">
+                            <h3>Input Parameters</h3>
+                            <table class="params-table">
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Description</th>
+                                    <th>Required</th>
+                                    <th>Default</th>
+                                </tr>
+                                <tr>
+                                    <td><code>base_url</code></td>
+                                    <td>Base URL of your vault service</td>
+                                    <td>Yes</td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td><code>auth_type</code></td>
+                                    <td>Authentication type (token, userpass)</td>
+                                    <td>No</td>
+                                    <td>token</td>
+                                </tr>
+                                <tr>
+                                    <td><code>username</code></td>
+                                    <td>Username for authentication</td>
+                                    <td>If <code>auth_type</code> is <code>userpass</code></td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td><code>password</code></td>
+                                    <td>Password for authentication</td>
+                                    <td>If <code>auth_type</code> is <code>userpass</code></td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td><code>api_token</code></td>
+                                    <td>Vault Auth Token</td>
+                                    <td>If <code>auth_type</code> is <code>token</code></td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td><code>vault_uid</code></td>
+                                    <td>Unique identifier for the vault</td>
+                                    <td>If <code>auth_type</code> is <code>userpass</code></td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td><code>ca_cert</code></td>
+                                    <td>Base64-encoded CA certificate for self-signed certificates</td>
+                                    <td>No</td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td><code>secrets</code></td>
+                                    <td>Multi-line list of secrets to retrieve</td>
+                                    <td>Yes</td>
+                                    <td></td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <div class="doc-section" id="action-workflow">
+                            <h3>Action Workflow</h3>
+                            
+                            <h4>Authentication</h4>
+                            <ul>
+                                <li>Action authenticates with the vault using specified credentials</li>
+                                <li>Obtains access token if using username/password method</li>
+                                <li>Uses the token for subsequent API calls</li>
+                                <li>Validates the CA certificate if provided</li>
+                            </ul>
+                            
+                            <h4>Secret Retrieval and Output</h4>
+                            <ul>
+                                <li>Makes authenticated API calls to retrieve each requested secret</li>
+                                <li>Sets values as workflow environment variables</li>
+                                <li>Makes values available as action outputs</li>
+                            </ul>
+                            
+                            <h4>Security Controls</h4>
+                            <ul>
+                                <li>All secret values marked as sensitive (masked in logs)</li>
+                                <li>Temporary tokens handled securely</li>
+                                <li>Certificate validation for secure API communication</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="doc-section" id="secret-format">
+                            <h3>Secret Format</h3>
+                            <p>Secrets are specified in the format: <code>BoxName.SecretName | ENV_VAR_NAME;</code></p>
+                            <p>Multiple secrets can be specified, separated by semicolons.</p>
+                            <p>You can use BoxID and SecretID in place of BoxName and SecretName, if required.</p>
+                        </div>
+                        
+                        <div class="doc-section" id="access-patterns">
+                            <h3>Access Patterns for Secrets</h3>
+                            
+                            <h4>Direct Environment Variables</h4>
+                            <p>Available in all subsequent steps.<br>
+                            Used like: <code>$AWS_ACCESS_KEY_ID</code> in shell commands.</p>
+                            
+                            <h4>Action Outputs</h4>
+                            <p>Referenced via: <code>${{ steps.fetch-secrets.outputs.SECRET_NAME }}</code><br>
+                            Useful in expressions or when exact variable name is important.</p>
+                            
+                            <h4>File Creation Using Outputs</h4>
+                            <p>Users can create files from the action's outputs if needed.</p>
+                            <pre><code>- name: Create secrets file
+  run: |
+    touch secrets.json
+    echo '${{ toJson(steps.fetch-secrets.outputs) }}' >> secrets.json</code></pre>
+                        </div>
+                        
+                        <div class="doc-section" id="examples">
+                            <h3>Example Workflow</h3>
+                            <div class="code-block">
+                                <pre><code>name: Deploy Application
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch secrets from vault
+        id: fetch-secrets
+        uses: EntrustCorporation/secrets-vault-action@v1
+        with:
+          base_url: ${{ secrets.VAULT_URL }}
+          auth_type: 'userpass'
+          username: ${{ secrets.VAULT_USERNAME }}
+          password: ${{ secrets.VAULT_PASSWORD }}
+          vault_uid: ${{ secrets.VAULT_UID }}
+          secrets: |
+            Box1.apiKey | API_KEY;
+            Box2.dbPass | DB_PASSWORD;
+
+      - name: Use secrets
+        run: |
+          echo "Using API_KEY: ${{ steps.fetch-secrets.outputs.API_KEY }}"
+          echo "Using DB_PASSWORD: ${DB_PASSWORD}"</code></pre>
+                            </div>
+                            <h4>Comprehensive Example</h4>
+                            <div class="code-block">
+                                <pre><code>name: Deploy Application
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch secrets from vault
+        id: fetch-secrets
+        uses: EntrustCorporation/secrets-vault-action@v1
+        with:
+          base_url: ${{ secrets.VAULT_URL }}
+          auth_type: 'userpass'
+          username: ${{ secrets.VAULT_USERNAME }}
+          password: ${{ secrets.VAULT_PASSWORD }}
+          vault_uid: ${{ secrets.VAULT_UID }}
+          secrets: |
+            Box1.accessKey | AWS_ACCESS_KEY_ID;
+            Box1.secretKey | AWS_SECRET_ACCESS_KEY;
+            Box2.privateKey | SSH_KEY;
+            Box1.sslCert | SSL_CERT;
+
+      - name: Create SSH directory and key
+        run: |
+          mkdir -p -m 700 ./ssh
+          echo "$SSH_KEY" > ./ssh/id_rsa
+          chmod 600 ./ssh/id_rsa
+
+      # Use secrets in subsequent steps
+      - name: Configure AWS CLI
+        run: |
+          aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+          aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY</code></pre>
+                            </div>
+                        </div>
+                        
+                        <div class="doc-section" id="best-practices">
+                            <h3>Best Practices for Handling Secrets</h3>
+                            <ul>
+                                <li><strong>Restrict File Permissions</strong>: If you write secrets into files, set strict permissions (e.g. <code>chmod 600</code>)</li>
+                                <li><strong>Avoid Unnecessary File Creation</strong>: Only create files from secrets if absolutely necessary</li>
+                                <li><strong>Secure Cleanup</strong>: Always delete sensitive files after use with <code>shred</code> or <code>rm</code></li>
+                                <li><strong>Mask Sensitive Data</strong>: Ensure secrets are masked in logs using GitHub's secret masking</li>
+                            </ul>
+                            
+                            <h4>File Secret Handling Example</h4>
+                            <div class="code-block">
+                                <pre><code># Create secure file with appropriate permissions
+mkdir -p -m 700 ./temp_dir
+echo "$SECRET" | base64 --decode > ./temp_dir/secret_file
+chmod 600 ./temp_dir/secret_file
+
+# Clean up securely when done
+shred -u ./temp_dir/secret_file || rm -f ./temp_dir/secret_file</code></pre>
+                            </div>
+                        </div>
+                        
+                        <div class="doc-section" id="cleanup">
+                            <h3>File Cleanup Best Practices</h3>
+                            <p>When working with sensitive data from secrets, always ensure proper cleanup:</p>
+                            
+                            <h4>Secure File Deletion</h4>
+                            <p>Use <code>shred</code> when available to securely overwrite files before deletion:</p>
+                            <div class="code-block">
+                                <pre><code># Linux secure file deletion
+if command -v shred &> /dev/null; then
+  shred -uzf ./path/to/secret_file
+else
+  rm -f ./path/to/secret_file
+fi</code></pre>
+                            </div>
+                            
+                            <h4>Temporary Directories</h4>
+                            <p>Create and clean up temporary directories in a secure manner:</p>
+                            <div class="code-block">
+                                <pre><code># Create a temporary directory with secure permissions
+TEMP_DIR=$(mktemp -d)
+chmod 700 $TEMP_DIR
+
+# Work with your secrets
+echo "$SECRET_DATA" > $TEMP_DIR/config.json
+chmod 600 $TEMP_DIR/config.json
+
+# Use the secrets for your application
+your_application --config $TEMP_DIR/config.json
+
+# Clean up when done
+find $TEMP_DIR -type f -exec shred -uzf {} \; 2>/dev/null || find $TEMP_DIR -type f -exec rm -f {} \;
+rm -rf $TEMP_DIR</code></pre>
+                            </div>
+                            
+                            <h4>GitHub Actions Workflows</h4>
+                            <p>For GitHub Actions, consider using a dedicated cleanup step that runs even if previous steps fail:</p>
+                            <div class="code-block">
+                                <pre><code>- name: Application deployment
+  id: deploy
+  run: |
+    mkdir -p -m 700 ./config
+    echo "${{ steps.fetch-secrets.outputs.API_KEY }}" > ./config/credentials
+    chmod 600 ./config/credentials
+    ./deploy.sh --config ./config/credentials
+  
+- name: Cleanup sensitive files
+  if: always()
+  run: |
+    if [ -d "./config" ]; then
+      find ./config -type f -exec shred -uzf {} \; 2>/dev/null || find ./config -type f -exec rm -f {} \;
+      rm -rf ./config
+    fi</code></pre>
+                            </div>
+                        </div>
+                        
+                        <div class="doc-section" id="resources">
+                            <h3>Additional Resources</h3>
+                            <ul class="resources-list">
+                                <li>
+                                    <i class="fas fa-book"></i>
+                                    <a href="https://github.com/EntrustCorporation/secrets-vault-action" target="_blank" rel="noopener">
+                                        Official GitHub Repository
+                                    </a>
+                                    <span>Source code and detailed technical documentation</span>
+                                </li>
+                                <li>
+                                    <i class="fas fa-shield-alt"></i>
+                                    <a href="https://docs.github.com/en/actions/security-guides/encrypted-secrets" target="_blank" rel="noopener">
+                                        GitHub Secrets Documentation
+                                    </a>
+                                    <span>Learn how to properly manage GitHub secrets for workflows</span>
+                                </li>
+                                <li>
+                                    <i class="fas fa-code-branch"></i>
+                                    <a href="https://docs.github.com/en/actions/learn-github-actions" target="_blank" rel="noopener">
+                                        GitHub Actions Documentation
+                                    </a>
+                                    <span>Complete guide to GitHub Actions workflows</span>
+                                </li>
+                                <li>
+                                    <i class="fas fa-key"></i>
+                                    <a href="https://www.entrust.com/products/key-management" target="_blank" rel="noopener">
+                                        Entrust KeyControl
+                                    </a>
+                                    <span>Learn more about Entrust KeyControl solutions</span>
+                                </li>
+                            </ul>
+                            
+                            <div class="config-generator-callout">
+                                <h4>Need a custom configuration?</h4>
+                                <p>Use our interactive <a href="?tab=form">configuration generator</a> to create a tailored YAML configuration for your specific workflow needs.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="form" class="tab-pane">
                     <form id="config-form">
                         <div class="form-section">
                             <h2>Basic Configuration</h2>
@@ -262,69 +603,6 @@
                             </button>
                         </div>
                     </form>
-                </div>
-
-                <div id="docs" class="tab-pane">
-                    <div class="documentation">
-                        <h2>Secret Vault Action</h2>
-                        <p>This GitHub Action allows you to fetch secrets from an Entrust KeyControl Secret Vault and make them available in your GitHub Actions workflow.</p>
-                        
-                        <div class="alert info-alert">
-                            <i class="fas fa-shield-alt"></i>
-                            <strong>Security Best Practice:</strong> Always store sensitive values like API tokens, usernames, and passwords in GitHub Secrets and reference them using <code>${{ secrets.SECRET_NAME }}</code> syntax.
-                        </div>
-                        
-                        <h3>Authentication Methods</h3>
-                        <div class="doc-section">
-                            <h4>Username/Password Authentication (Recommended)</h4>
-                            <p>Exchanges credentials for a temporary access token. This is more secure than persistent tokens as authentication is performed for each run.</p>
-                            
-                            <h4>Token Authentication</h4>
-                            <p>Uses a pre-generated API token for direct authentication. This is simpler but requires token management.</p>
-                        </div>
-                        
-                        <h3>Secret Format</h3>
-                        <div class="doc-section">
-                            <p>Secrets are specified in the format: <code>BoxName.SecretName | ENV_VAR_NAME;</code></p>
-                            <p>Multiple secrets can be specified, separated by semicolons.</p>
-                        </div>
-                        
-                        <h3>Output Usage</h3>
-                        <div class="doc-section">
-                            <p>Secrets are available as:</p>
-                            <ul>
-                                <li>Environment variables: <code>${ENV_VAR_NAME}</code></li>
-                                <li>Step outputs: <code>${{ steps.fetch-secret.outputs.ENV_VAR_NAME }}</code></li>
-                            </ul>
-                        </div>
-                        
-                        <h3>Example Workflow</h3>
-                        <div class="code-block">
-                            <pre><code>name: Deploy Application
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Fetch secrets from vault
-        id: fetch-secrets
-        uses: EntrustCorporation/secrets-vault-action@v1
-        with:
-          base_url: ${{ secrets.VAULT_URL }}
-          auth_type: 'userpass'
-          username: ${{ secrets.VAULT_USERNAME }}
-          password: ${{ secrets.VAULT_PASSWORD }}
-          vault_uid: ${{ secrets.VAULT_UID }}
-          secrets: |
-            Box1.apiKey | API_KEY;
-            Box2.dbPass | DB_PASSWORD;
-
-      - name: Use secrets
-        run: |
-          echo "Using API_KEY: ${{ steps.fetch-secrets.outputs.API_KEY }}"
-          echo "Using DB_PASSWORD: ${DB_PASSWORD}"</code></pre>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
