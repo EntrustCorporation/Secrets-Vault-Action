@@ -43,6 +43,9 @@ class TokenAuthenticator extends BaseAuthenticator {
   constructor(config) {
     super(config);
     this.token = core.getInput(API_TOKEN, { required: true });
+    if  ( this.token === '') {
+      throw new Error('API token is required for Token authentication');
+    }
   }
 
   async getAuthHeaders() {
@@ -62,6 +65,11 @@ class UserPassAuthenticator extends BaseAuthenticator {
     this.username = core.getInput(USERNAME, { required: true });
     this.password = core.getInput(PASSWORD, { required: true });
     this.vaultUId = core.getInput(VAULT_UID, { required: true });
+
+    if (!this.username || !this.password || !this.vaultUId) {
+      throw new Error('Username, password, and vault UID are required for UserPass authentication');
+    }
+
     this.token = null;
     this.tokenExpiry = null;
   }

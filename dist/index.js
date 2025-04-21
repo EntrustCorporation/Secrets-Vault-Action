@@ -30272,7 +30272,18 @@ async function exportSecrets() {
   let tempCertPath = null;
   
   try {
-    const baseUrl = core.getInput(BASE_URL, { required: true });
+    let baseUrl = core.getInput(BASE_URL, { required: true });
+
+    if (!baseUrl) {
+      core.error('Base URL is required');
+      throw new Error('Base URL is required');
+    }
+
+    if (baseUrl.endsWith('/')) {
+      baseUrl = baseUrl.slice(0, -1);
+      core.info(`Base URL adjusted to remove trailing slash: ${baseUrl}`);
+    }
+
     const caCert = core.getInput(CA_CERT);
     const secretsInput = core.getInput(SECRETS, { required: true });
     const tls_verify_skip = core.getInput(TLS_VERIFY_SKIP);
@@ -30439,6 +30450,9 @@ class TokenAuthenticator extends BaseAuthenticator {
   constructor(config) {
     super(config);
     this.token = core.getInput(API_TOKEN, { required: true });
+    if  ( this.token === '') {
+      throw new Error('API token is required for Token authentication');
+    }
   }
 
   async getAuthHeaders() {
@@ -30458,6 +30472,11 @@ class UserPassAuthenticator extends BaseAuthenticator {
     this.username = core.getInput(USERNAME, { required: true });
     this.password = core.getInput(PASSWORD, { required: true });
     this.vaultUId = core.getInput(VAULT_UID, { required: true });
+
+    if (!this.username || !this.password || !this.vaultUId) {
+      throw new Error('Username, password, and vault UID are required for UserPass authentication');
+    }
+
     this.token = null;
     this.tokenExpiry = null;
   }

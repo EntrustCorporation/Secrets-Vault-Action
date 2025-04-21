@@ -13,7 +13,18 @@ async function exportSecrets() {
   let tempCertPath = null;
   
   try {
-    const baseUrl = core.getInput(BASE_URL, { required: true });
+    let baseUrl = core.getInput(BASE_URL, { required: true });
+
+    if (!baseUrl) {
+      core.error('Base URL is required');
+      throw new Error('Base URL is required');
+    }
+
+    if (baseUrl.endsWith('/')) {
+      baseUrl = baseUrl.slice(0, -1);
+      core.info(`Base URL adjusted to remove trailing slash: ${baseUrl}`);
+    }
+
     const caCert = core.getInput(CA_CERT);
     const secretsInput = core.getInput(SECRETS, { required: true });
     const tls_verify_skip = core.getInput(TLS_VERIFY_SKIP);
