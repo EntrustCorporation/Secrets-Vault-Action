@@ -30272,19 +30272,18 @@ async function exportSecrets() {
   let tempCertPath = null;
   
   try {
-    let baseUrl = core.getInput(BASE_URL, { required: true });
+    let baseUrl = core.getInput(BASE_URL, { required: true }).trim();
 
     if (!baseUrl) {
       core.error('Base URL is required');
       throw new Error('Base URL is required');
     }
-
     if (baseUrl.endsWith('/')) {
       baseUrl = baseUrl.slice(0, -1);
       core.info(`Base URL adjusted to remove trailing slash: ${baseUrl}`);
     }
 
-    const caCert = core.getInput(CA_CERT);
+    const caCert = core.getInput(CA_CERT).trim();
     const secretsInput = core.getInput(SECRETS, { required: true });
     const tls_verify_skip = core.getInput(TLS_VERIFY_SKIP);
 
@@ -30416,7 +30415,7 @@ const { AUTH_TYPE, TOKEN_AUTH, USERPASS_AUTH, VAULT_AUTH_HEADER, USERNAME, PASSW
  * @return {Object} Authenticator instance
  */
 function createAuthenticator(config) {
-  const authType = core.getInput(AUTH_TYPE) || TOKEN_AUTH;
+  const authType = core.getInput(AUTH_TYPE).trim() || TOKEN_AUTH;
 
   switch (authType.toLowerCase()) {
     case TOKEN_AUTH:
@@ -30449,7 +30448,7 @@ class BaseAuthenticator {
 class TokenAuthenticator extends BaseAuthenticator {
   constructor(config) {
     super(config);
-    this.token = core.getInput(API_TOKEN, { required: true });
+    this.token = core.getInput(API_TOKEN, { required: true }).trim();
     if  ( this.token === '') {
       throw new Error('API token is required for Token authentication');
     }
@@ -30469,9 +30468,9 @@ class TokenAuthenticator extends BaseAuthenticator {
 class UserPassAuthenticator extends BaseAuthenticator {
   constructor(config) {
     super(config);
-    this.username = core.getInput(USERNAME, { required: true });
-    this.password = core.getInput(PASSWORD, { required: true });
-    this.vaultUId = core.getInput(VAULT_UID, { required: true });
+    this.username = core.getInput(USERNAME, { required: true }).trim();
+    this.password = core.getInput(PASSWORD, { required: true }).trim();
+    this.vaultUId = core.getInput(VAULT_UID, { required: true }).trim();
 
     if (!this.username || !this.password || !this.vaultUId) {
       throw new Error('Username, password, and vault UID are required for UserPass authentication');
