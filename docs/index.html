@@ -610,6 +610,10 @@ rm -rf $TEMP_DIR</code></pre>
         
         <div id="result" class="card hidden">
             <h2>Generated YAML Configuration</h2>
+            <div class="alert info-alert">
+                <i class="fas fa-info-circle"></i>
+                <span><strong>How to use:</strong> Add this configuration under the <code>steps:</code> section of your GitHub workflow YAML file. Make sure to replace placeholder values with your actual GitHub secrets.</span>
+            </div>
             <div class="code-actions">
                 <button id="copy-yaml" class="button secondary">
                     <i class="fas fa-copy"></i> Copy to Clipboard
@@ -620,6 +624,50 @@ rm -rf $TEMP_DIR</code></pre>
             </div>
             <div class="code-block">
                 <pre><code id="yaml-output"></code></pre>
+            </div>
+            <div class="alert info-alert">
+                <i class="fas fa-lightbulb"></i>
+                <span><strong>Complete Workflow Example:</strong></span>
+            </div>
+            <div class="code-block">
+                <pre><code>name: Deploy Application
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Your generated configuration will be inserted below
+      - name: Fetch secrets from vault
+        id: fetch-secrets
+        uses: EntrustCorporation/secrets-vault-action@v1
+        with:
+          base_url: ${{ secrets.VAULT_URL }}
+          auth_type: 'userpass'
+          username: ${{ secrets.VAULT_USERNAME }}
+          password: ${{ secrets.VAULT_PASSWORD }}
+          vault_uid: ${{ secrets.VAULT_UID }}
+          secrets: |
+            Box1.apiKey | API_KEY;
+            Box2.dbPass | DB_PASSWORD;
+
+      # Example of how to use the fetched secrets
+      - name: Use secrets
+        run: |
+          echo "Using secrets in your workflow"
+          # Access as environment variables
+          echo "Running with API from $DB_PASSWORD"
+          
+          # Or access as outputs
+          echo "API Key is masked: ${{ steps.fetch-secrets.outputs.API_KEY }}"</code></pre>
             </div>
         </div>
 
